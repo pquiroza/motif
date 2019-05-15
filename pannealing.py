@@ -749,28 +749,47 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
     print ("Cruzamiento inicial " +str(len(population)))
 
 
+    q = Queue()
+    tpop = len(population)
+    print(len(population))
+    m1 = population[:int(tpop/4)]
+    print (len(m1))
+    p1 = Process(target=parallelFitness,args=(m1,q))
+    p1.start()
+    m2 = population[int((tpop/4)+1):int((tpop/4)*2)]
+    print (len(m2))
+    p2 = Process(target=parallelFitness,args=(m2,q))
+    p2.start()
+    m3 = population[int(((tpop/4)*2)+1):int((tpop/4)*3)]
+    print (len(m3))
+    p3 = Process(target=parallelFitness,args=(m3,q))
+    p3.start()
+    m4 = population[int(((tpop/4)*3)+1):]
+    print (len(m4))
+    p4 = Process(target=parallelFitness,args=(m4,q))
+    p4.start()
 
-    for m in population:
+
+    presults = []
+    popi = []
+    for ps in range(4):
+        print ("Join Process "+str(ps))
+        presults.append(q.get(True))
+
+        print ("Len presults "+str(len(presults)))
+    for pr in presults:
+        print("PR LENGTH "+str((len(pr))))
+        for m in pr:
+            popi.append(m)
 
 
 
 
-        fitness,p = getFitness(m)
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
-        #fitness =   HammingMatrixr(m,datos)
-        #if (fitness>0):
-         #   propor = decimal.Decimal(1/decimal.Decimal(fitness))
-        #else:
-         #   propor = 1
-
-        m.setFitness(propor)
 
 
 
 
-
-
-    pop = seleccion(population,poblacion)
+    pop = seleccion(popi,poblacion)
 
     print ("Seleccion inicial " +str(len(pop)))
 
@@ -873,9 +892,7 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
                 suma = suma + m.fitness
                 print (m.fitness)
                 pop.append(m)
-                for h in m.kmers:
-                    print (h.adn)
-                    print ("-"*20)
+
 
 
         promedio = suma/len(pop)
