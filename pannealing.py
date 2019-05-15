@@ -281,7 +281,7 @@ def parallelFitness(mmatriz,q):
             propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
             matriz.setFitness(propor)
         localr.append(matriz)
-    print(len(localr))
+
     q.put(localr)
 
 
@@ -638,6 +638,20 @@ def escribeindividuo(individuo,generacion,archivo):
     f.write('\n')
     f.close
 
+def newseleccion(population,umbral,media):
+    mejores = []
+    print(media)
+    valor = decimal.Decimal(media)*decimal.Decimal(0.95)
+    for i in population:
+        print(i.fitness,media)
+        if i.fitness>=(valor):
+
+            mejores.append(i)
+
+
+    return mejores
+
+
 def seleccion(population,umbral):
 
     mejores = []
@@ -738,79 +752,20 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
     print ("Generacion inicial " +str(len(population)))
 
-    for i in range(0,poblacion):
-        cruza1 = random.randint(0,len(population)-1)
-        cruza2 = random.randint(0,len(population)-1)
-        hijo1,hijo2 = cruzamiento(population[cruza1],population[cruza2])
-        population.append(hijo1)
-        population.append(hijo2)
-    #escribeGeneracion(population,"GAFinal.fts")
-
-    print ("Cruzamiento inicial " +str(len(population)))
-
-
-    q = Queue()
-    tpop = len(population)
-    print(len(population))
-    m1 = population[:int(tpop/4)]
-    print (len(m1))
-    p1 = Process(target=parallelFitness,args=(m1,q))
-    p1.start()
-    m2 = population[int((tpop/4)+1):int((tpop/4)*2)]
-    print (len(m2))
-    p2 = Process(target=parallelFitness,args=(m2,q))
-    p2.start()
-    m3 = population[int(((tpop/4)*2)+1):int((tpop/4)*3)]
-    print (len(m3))
-    p3 = Process(target=parallelFitness,args=(m3,q))
-    p3.start()
-    m4 = population[int(((tpop/4)*3)+1):]
-    print (len(m4))
-    p4 = Process(target=parallelFitness,args=(m4,q))
-    p4.start()
-
-
-    presults = []
-    popi = []
-    for ps in range(4):
-        print ("Join Process "+str(ps))
-        presults.append(q.get(True))
-
-        print ("Len presults "+str(len(presults)))
-    for pr in presults:
-        print("PR LENGTH "+str((len(pr))))
-        for m in pr:
-            popi.append(m)
-
-
-
-
-
-
-
-
-    pop = seleccion(popi,poblacion)
-
-    print ("Seleccion inicial " +str(len(pop)))
-
+    pop = copy.deepcopy(population)
+    print(len(pop))
 
     for c in range(ciclos):
         promedio = 0
         suma = 0
-        print (len(pop))
+        print(len(pop))
+        print ("INICIANDO CICLO "+str(c))
 
 
         semuta = random.randint(0,100)
-        escribeindividuo(pop[0],c,"Bestgen"+salida+".fts")
+        #escribeindividuo(pop[0],c,"Bestgen"+salida+".fts")
 
 
-        limite = decimal.Decimal("0.90")
-        if (pop[0].fitness>=limite):
-
-            print ("MOTIF ENCONTRADO " + str(propor))
-            escribeindividuo(pop[0],c,"FINAL"+salida+".fts")
-            escribeGeneracion(pop,"GAFinal"+salida+".fts")
-            exit()
 
 
 
@@ -820,7 +775,7 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
         #print "LLENADO " +str(len(pop))
 
-        if (semuta<11):
+        if (False):
             print ("MUTANDO")
 
             mutados = random.randint(0,200)
@@ -839,19 +794,26 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
                 pop [amutar].setFitness(propor)
 
 
+        print(len(pop))
 
         hijos = []
+        poptemp = []
+        print("EMPEZANDO A CRUZAR")
         for i in range(poblacion):
             cruza1 = random.randint(0,len(pop)-1)
             cruza2 = random.randint(0,len(pop)-1)
             #print "Cruza 1 " +str(cruza1)
             #print "Cruza 2 " +str(cruza2)
             hijo1,hijo2 = cruzamiento(pop[cruza1],pop[cruza2])
-            hijos.append(hijo1)
-            hijos.append(hijo2)
+
+            poptemp.append(hijo1)
+            poptemp.append(hijo2)
 
         #escribeGeneracion(pop,"Gens"+str(c)+".fts")
-        pop = hijos
+        #pop = hijos
+
+        pop = []
+        pop = copy.deepcopy(poptemp)
 
 
 
@@ -890,13 +852,11 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
             print("PR LENGTH "+str((len(pr))))
             for m in pr:
                 suma = suma + m.fitness
-                print (m.fitness)
                 pop.append(m)
 
 
 
         promedio = suma/len(pop)
-        print(promedio)
         escribeFitness(promedio,lkmer,"FitnessPromedio"+salida+".fts")
 
 
@@ -904,8 +864,17 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
         print ("GENERACION " +str(c) + " FITNESS " + str(promedio) + "LARGO " + str(len(pop)))
 
+        limite = decimal.Decimal("0.90")
+        if (pop[0].fitness>=limite):
+            print ("MOTIF ENCONTRADO " + str(propor))
+            escribeindividuo(pop[0],c,"FINAL"+salida+".fts")
+            escribeGeneracion(pop,"GAFinal"+salida+".fts")
+            exit()
+
+
         pop2 = copy.deepcopy(pop)
-        pop = seleccion(pop2,umbral)
+        pop = newseleccion(pop2,umbral,promedio)
+        print ("INDIVIDUOS  DESPUES DE SELECCION "+str(len(pop)))
         #pop = seleccion(pop,umbral)
 
 
