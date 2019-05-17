@@ -10,7 +10,7 @@ datos2 = []
 datos3 = []
 candidatos = []
 cadn = []
-
+limite = decimal.Decimal("0.95")
 
 import math
 
@@ -265,7 +265,6 @@ def generaMatrizInicial(datos,largo):
 def parallelFitness(mmatriz,q):
     localr = []
     alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
-    print ("PROCESO ")
     for matriz in mmatriz:
         fitness = 0
         palabra = ""
@@ -641,9 +640,8 @@ def escribeindividuo(individuo,generacion,archivo):
 def newseleccion(population,umbral,media):
     mejores = []
     print(media)
-    valor = decimal.Decimal(media)*decimal.Decimal(0.95)
+    valor = decimal.Decimal(media)*decimal.Decimal(1.1)
     for i in population:
-        print(i.fitness,media)
         if i.fitness>=(valor):
 
             mejores.append(i)
@@ -707,13 +705,13 @@ def mutacion(individuo,datos):
     cambios = random.randint(1,len(mutado.kmers)-1)
 
 
+
     for i in range(len(mutado.kmers)):
         start = random.randint(0,len(mutado.kmers)-1)
         kmer = Kmer(start,mutado.kmers[start].adn,mutado.kmers[start].posicioninicial,mutado.kmers[start].largo)
         posicion = random.randint(0,len(kmer.adn))
         kmer.posicioninicial = posicion
         kmer.adn = getPalabra(datos,start,kmer.posicioninicial,kmer.largo)
-
         mutado.setKmer(start,kmer)
 
 
@@ -726,9 +724,11 @@ def escribeGeneracion(population,archivo):
     f.write("Population")
     f.write('\n')
     for i in population:
+        valores = ""
         for j in i.kmers:
-            f.write(j.adn + " " + str(j.posicioninicial))
-            f.write('\n')
+            valores = valores +"-"+ str(j.posicioninicial)
+        f.write(valores)
+        f.write('\n')
         f.write(str(i.fitness))
         f.write('\n')
     f.write('\n')
@@ -774,11 +774,9 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
         #    pop.append(m)
 
         #print "LLENADO " +str(len(pop))
-
-        if (False):
-            print ("MUTANDO")
-
-            mutados = random.randint(0,200)
+        print ("SE MUTA VALOR "+str(semuta))
+        if (semuta<15):
+            mutados = random.randint(0,(len(pop)/2))
             print ("A MUTAR " +str(mutados))
             for m in range(mutados):
 
@@ -790,15 +788,14 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
                 pop[amutar] = mutacion(pop[amutar],datos)
                 fts,pal = getFitness(pop[amutar])
-                propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
-                pop [amutar].setFitness(propor)
+                propor = decimal.Decimal(decimal.Decimal(fts)/(decimal.Decimal(lkmer*len(datos))))
+                pop[amutar].setFitness(propor)
 
 
         print(len(pop))
 
         hijos = []
         poptemp = []
-        print("EMPEZANDO A CRUZAR")
         for i in range(poblacion):
             cruza1 = random.randint(0,len(pop)-1)
             cruza2 = random.randint(0,len(pop)-1)
@@ -818,70 +815,70 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
 
 
-        print ("DESPUES DE CRUZAR " + str(len(pop)))
 
         q = Queue()
         tpop = len(pop)
-        print(len(pop))
         m1 = pop[:int(tpop/4)]
-        print (len(m1))
         p1 = Process(target=parallelFitness,args=(m1,q))
         p1.start()
         m2 = pop[int((tpop/4)+1):int((tpop/4)*2)]
-        print (len(m2))
         p2 = Process(target=parallelFitness,args=(m2,q))
         p2.start()
         m3 = pop[int(((tpop/4)*2)+1):int((tpop/4)*3)]
-        print (len(m3))
         p3 = Process(target=parallelFitness,args=(m3,q))
         p3.start()
         m4 = pop[int(((tpop/4)*3)+1):]
-        print (len(m4))
         p4 = Process(target=parallelFitness,args=(m4,q))
         p4.start()
 
-
+        mejorfitness = 0
         presults = []
         pop = []
+        mejorg = None
         for ps in range(4):
-            print ("Join Process "+str(ps))
             presults.append(q.get(True))
-
-            print ("Len presults "+str(len(presults)))
         for pr in presults:
-            print("PR LENGTH "+str((len(pr))))
             for m in pr:
+                if (m.fitness>mejorfitness):
+
+                    mejorfitness = m.fitness
+                    mejorg = copy.deepcopy(m)
+
+                if (m.fitness>limite):
+                    print ("MOTIF ENCONTRADO " + str(propor))
+                    showMatriz(m)
+                    escribeindividuo(m,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-final.fts")
+                    #escribeGeneracion(pop,"GAFinal"+salida+".fts")
+                    exit()
+
                 suma = suma + m.fitness
                 pop.append(m)
 
 
-
+        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-generacion.fts")
         promedio = suma/len(pop)
-        escribeFitness(promedio,lkmer,"FitnessPromedio"+salida+".fts")
+        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-fitnesspromedio.fts")
+
+
+        #if (c%10==0):
+        #    escribeGeneracion(pop,"Gen"+salida+str(c)+".fts")
+
+
+        print ("GENERACION " +str(c) + " FITNESS " + str(promedio))
 
 
 
-
-        print ("GENERACION " +str(c) + " FITNESS " + str(promedio) + "LARGO " + str(len(pop)))
-
-        limite = decimal.Decimal("0.90")
-        if (pop[0].fitness>=limite):
-            print ("MOTIF ENCONTRADO " + str(propor))
-            escribeindividuo(pop[0],c,"FINAL"+salida+".fts")
-            escribeGeneracion(pop,"GAFinal"+salida+".fts")
-            exit()
 
 
         pop2 = copy.deepcopy(pop)
-        pop = newseleccion(pop2,umbral,promedio)
+        pop = seleccion(pop2,umbral)
         print ("INDIVIDUOS  DESPUES DE SELECCION "+str(len(pop)))
         #pop = seleccion(pop,umbral)
 
 
 
 
-    escribeindividuo(pop[0],c,"FINAL"+salida+".fts")
-    escribeGeneracion(pop,"GAFinal"+salida+".fts")
+    #escribeGeneracion(pop,"GAFinal"+salida+".fts")
 
 datos = cargaSecuencias(sys.argv[1])
 #1 archivo, 2 ciclo
