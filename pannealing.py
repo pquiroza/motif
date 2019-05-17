@@ -739,6 +739,8 @@ def escribeGeneracion(population,archivo):
 def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
     population = []
     resultados = []
+    contador = 0
+    fitnessacum = 0
 
 
 
@@ -851,14 +853,27 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
                     #escribeGeneracion(pop,"GAFinal"+salida+".fts")
                     exit()
 
+
+
                 suma = suma + m.fitness
                 pop.append(m)
 
+        print(fitnessacum,mejorg.fitness)
 
+        if(mejorg.fitness<=fitnessacum):
+            contador = contador + 1
+            print("ESTANCADO "+str(contador))
+        if (mejorg.fitness>fitnessacum):
+            fitnessacum = mejorg.fitness
+            contador = 0
+
+        if (contador == 30):
+            print("TERMINANDO ALGORITMO")
+            escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-"+str(ciclos)+"-generacion.fts")
+            exit()
         escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-generacion.fts")
         promedio = suma/len(pop)
         escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-fitnesspromedio.fts")
-
 
         #if (c%10==0):
         #    escribeGeneracion(pop,"Gen"+salida+str(c)+".fts")
