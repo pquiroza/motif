@@ -276,7 +276,10 @@ def parallelFitness(mmatriz,q):
             valor = counts.values()
             maximo = max(valor)
 
+            if (maximo > nkmers*0.88):
+                maximo = maximo + 100
             fitness = fitness + maximo
+
             propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
             matriz.setFitness(propor)
         localr.append(matriz)
@@ -299,6 +302,7 @@ def getFitness(matriz):
             counts[i.adn[k]]+=1
         valor =  counts.values()
         maximo =  max(valor)
+
 
         #posicion = valor.index(maximo)
 
@@ -838,12 +842,12 @@ def genetico(poblacion,ciclos,datos,lkmer):
                     mejorfitness = m.fitness
                     mejorg = copy.deepcopy(m)
 
-                if (m.fitness>limite):
-                    print ("MOTIF ENCONTRADO " + str(propor))
-                    showMatriz(m)
-                    escribeindividuo(m,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-final.fts")
+                #if (m.fitness>limite):
+                #    print ("MOTIF ENCONTRADO " + str(propor))
+                #    showMatriz(m)
+                #    escribeindividuo(m,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-final.fts")
                     #escribeGeneracion(pop,"GAFinal"+salida+".fts")
-                    return 1
+                #    return 1
 
 
 
@@ -891,7 +895,7 @@ datos = cargaSecuencias(sys.argv[1])
 
 #poblacion,ciclos,datos,lkmer,umbral,salida,parada
 
-for i in range(4,8):
+for i in range(6,15):
     #poblacion,ciclos
     lkmer = i
     genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
