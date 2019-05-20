@@ -843,7 +843,7 @@ def genetico(poblacion,ciclos,datos,lkmer):
                     showMatriz(m)
                     escribeindividuo(m,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-final.fts")
                     #escribeGeneracion(pop,"GAFinal"+salida+".fts")
-                    exit()
+                    return 1
 
 
 
@@ -862,7 +862,7 @@ def genetico(poblacion,ciclos,datos,lkmer):
         if (contador == 30):
             print("TERMINANDO ALGORITMO")
             escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-"+str(ciclos)+"-generacion.fts")
-            exit()
+            return 1
         escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-generacion.fts")
         promedio = suma/len(pop)
         escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-fitnesspromedio.fts")
