@@ -736,7 +736,7 @@ def escribeGeneracion(population,archivo):
     f.write('\n')
     f.close
 
-def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
+def genetico(poblacion,ciclos,datos,lkmer):
     population = []
     resultados = []
     contador = 0
@@ -752,7 +752,6 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
         population.append(m)
 
-    print ("Generacion inicial " +str(len(population)))
 
     pop = copy.deepcopy(population)
     print(len(pop))
@@ -761,7 +760,7 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
         promedio = 0
         suma = 0
         print(len(pop))
-        print ("INICIANDO CICLO "+str(c))
+        print ("Lkmer "+str(lkmer)+" Ciclo "+str(c))
 
 
         semuta = random.randint(0,100)
@@ -771,15 +770,9 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
 
 
-        #for i in range(poblacion):
-        #    m = generaMatrizInicial(datos,lkmer)
-        #    pop.append(m)
-
-        #print "LLENADO " +str(len(pop))
-        print ("SE MUTA VALOR "+str(semuta))
         if (semuta<15):
             mutados = random.randint(0,(len(pop)/2))
-            print ("A MUTAR " +str(mutados))
+            print ("Mutando "+str(mutados))
             for m in range(mutados):
 
                 amutar = random.randint(0,len(pop)-1)
@@ -794,7 +787,6 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
                 pop[amutar].setFitness(propor)
 
 
-        print(len(pop))
 
         hijos = []
         poptemp = []
@@ -879,15 +871,14 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
         #    escribeGeneracion(pop,"Gen"+salida+str(c)+".fts")
 
 
-        print ("GENERACION " +str(c) + " FITNESS " + str(promedio))
+        print ("Generación " +str(c) + " Fitness Promedio " + str(promedio))
 
 
 
 
 
         pop2 = copy.deepcopy(pop)
-        pop = seleccion(pop2,umbral)
-        print ("INDIVIDUOS  DESPUES DE SELECCION "+str(len(pop)))
+        pop = seleccion(pop2,poblacion)
         #pop = seleccion(pop,umbral)
 
 
@@ -897,9 +888,13 @@ def genetico(poblacion,ciclos,datos,lkmer,umbral,salida,parada):
 
 datos = cargaSecuencias(sys.argv[1])
 #1 archivo, 2 ciclo
-lkmer = int(sys.argv[4])
+
 #poblacion,ciclos,datos,lkmer,umbral,salida,parada
-genetico(int(sys.argv[2]),int(sys.argv[3]),datos,int(sys.argv[4]),int(sys.argv[5]),sys.argv[6],sys.argv[7])
+
+for i in range(4,8):
+    #poblacion,ciclos
+    lkmer = i
+    genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
 #for i in range(int(sys.argv[4]),int(sys.argv[5])):
         #ejecutar(int(sys.argv[2]),int(sys.argv[3]),i,datos,sys.argv[6],sys.argv[7])
         #annealing2(int(sys.argv[2]),int(sys.argv[3]),i,datos,sys.argv[6]+"a",sys.argv[7])
