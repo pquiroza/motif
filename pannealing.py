@@ -276,8 +276,8 @@ def parallelFitness(mmatriz,q):
             valor = counts.values()
             maximo = max(valor)
 
-            if (maximo > nkmers*0.88):
-                maximo = maximo + 100
+            #if (maximo > nkmers*0.88):
+            #    maximo = maximo + nkmers
             fitness = fitness + maximo
 
             propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
@@ -285,7 +285,7 @@ def parallelFitness(mmatriz,q):
         localr.append(matriz)
 
     q.put(localr)
-
+   
 
 
 def getFitness(matriz):
@@ -654,6 +654,24 @@ def newseleccion(population,umbral,media):
     return mejores
 
 
+def parallelSeleccion(poplocal,q):
+    ganadores = []
+    largo = len(poplocal)
+    while(len(poplocal)>2):
+        participante1 = random.randint(0,len(poplocal)-2)
+        participante2 = random.randint(0,len(poplocal)-2)
+
+        if (poplocal[participante1].fitness >= poplocal[participante2].fitness):
+            ganadores.append(poplocal[participante1])
+
+
+        else:
+            ganadores.append(poplocal[participante2])
+        poplocal.pop(participante1)
+        poplocal.pop(participante2)
+
+    q.put(ganadores)
+
 def seleccion(population,umbral):
 
     mejores = []
@@ -768,22 +786,14 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
         semuta = random.randint(0,100)
-        #escribeindividuo(pop[0],c,"Bestgen"+salida+".fts")
-
-
-
-
 
         if (semuta<15):
-            mutados = random.randint(0,(len(pop)/2))
+
+            mutados = random.randint(0,(int(len(pop)/2)))
             print ("Mutando "+str(mutados))
             for m in range(mutados):
 
                 amutar = random.randint(0,len(pop)-1)
-                #print "ANTES " +str(population[amutar].fitness)
-                #for pa in population[amutar].kmers:
-                #    print pa.adn
-                #print "-"*20
 
                 pop[amutar] = mutacion(pop[amutar],datos)
                 fts,pal = getFitness(pop[amutar])
@@ -842,15 +852,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
                     mejorfitness = m.fitness
                     mejorg = copy.deepcopy(m)
 
-                #if (m.fitness>limite):
-                #    print ("MOTIF ENCONTRADO " + str(propor))
-                #    showMatriz(m)
-                #    escribeindividuo(m,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-final.fts")
-                    #escribeGeneracion(pop,"GAFinal"+salida+".fts")
-                #    return 1
-
-
-
                 suma = suma + m.fitness
                 pop.append(m)
 
@@ -871,10 +872,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
         promedio = suma/len(pop)
         escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-fitnesspromedio.fts")
 
-        #if (c%10==0):
-        #    escribeGeneracion(pop,"Gen"+salida+str(c)+".fts")
-
-
         print ("Generación " +str(c) + " Fitness Promedio " + str(promedio))
 
 
@@ -882,7 +879,31 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
         pop2 = copy.deepcopy(pop)
-        pop = seleccion(pop2,poblacion)
+        qs = Queue()
+        tpop = len(pop2)
+        m1 = pop2[:int(tpop/4)]
+        p1 = Process(target=parallelSeleccion,args=(m1,qs))
+        p1.start()
+        m2 = pop2[int((tpop/4)+1):int((tpop/4)*2)]
+        p2 = Process(target=parallelSeleccion,args=(m2,qs))
+        p2.start()
+        m3 = pop2[int(((tpop/4)*2)+1):int((tpop/4)*3)]
+        p3 = Process(target=parallelSeleccion,args=(m3,qs))
+        p3.start()
+        m4 = pop2[int(((tpop/4)*3)+1):]
+        p4 = Process(target=parallelSeleccion,args=(m4,qs))
+        p4.start()
+        pop = []
+        psseleccion = []
+
+        for ps in range(4):
+            psseleccion.append(qs.get(True))
+        for pr in psseleccion:
+            for m in pr:
+                pop.append(m)
+
+
+        #pop = seleccion(pop2,poblacion)
         #pop = seleccion(pop,umbral)
 
 
@@ -895,7 +916,7 @@ datos = cargaSecuencias(sys.argv[1])
 
 #poblacion,ciclos,datos,lkmer,umbral,salida,parada
 
-for i in range(6,15):
+for i in range(10,16):
     #poblacion,ciclos
     lkmer = i
     genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
