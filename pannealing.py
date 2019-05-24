@@ -4,6 +4,7 @@ import decimal
 import sys
 
 from multiprocessing import Process, Queue
+from collections import Counter
 
 datos = []
 datos2 = []
@@ -269,6 +270,7 @@ def parallelFitness(mmatriz,q):
         fitness = 0
         palabra = ""
         nkmers = len(matriz.kmers)
+        lkmers = len(matriz.kmers[0].adn)
         for k in range(len(matriz.kmers[0].adn)):
             pal = ""
             counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
@@ -279,18 +281,21 @@ def parallelFitness(mmatriz,q):
 
 
             maximo = max(valor)
-            print("maximo "+str(maximo))
+
             if (maximo == nkmers):
-                maximo = maximo + nkmers
+                maximo = maximo + lkmers
             fitness = fitness + maximo
-            print(counts)
-            print(valor)
-            print(fitness)
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
-        print(propor)
-        showMatriz(matriz)
-        exit()
+
+            ceros = list(counts.values()).count(0)
+
+            fitness = fitness + ceros
+
+
+
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+lkmers+20)*lkmers)))
         matriz.setFitness(propor)
+
+
         localr.append(matriz)
 
     q.put(localr)
@@ -734,7 +739,23 @@ def seleccionespecial(population,umbral,datos):
 def mutacion(individuo,datos):
     mutado = copy.deepcopy(individuo)
     cambios = random.randint(1,len(mutado.kmers)-1)
+    ncambios = random.randint(1,len(datos))
 
+
+    print(ncambios)
+    showMatriz(individuo)
+
+    print(individuo.kmers[ncambios].posicioninicial)
+    print(individuo.kmers[ncambios].adn)
+    print(individuo.kmers[ncambios].largo)
+    kmer = Kmer(ncambios,individuo.kmers[ncambios].adn,individuo.kmers[ncambios].posicioninicial,individuo.kmers[ncambios].largo)
+    kmer.posicioninicial = kmer.posicioninicial + 1
+    kmer.adn = getPalabra(datos,ncambios,kmer.posicioninicial,kmer.largo)
+    print(kmer.adn)
+    individuo.setKmer(ncambios,kmer)
+    showMatriz(individuo)
+
+    exit()
 
 
     for i in range(len(mutado.kmers)):
@@ -796,7 +817,7 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
         semuta = random.randint(0,100)
         #sin mutacion
-        if (1==15):
+        if (semuta<100):
             print("Sin mutacion")
             mutados = random.randint(0,len(pop))
             print ("Mutando "+str(mutados))
@@ -838,15 +859,15 @@ def genetico(poblacion,ciclos,datos,lkmer):
         m1 = pop[:int(tpop/4)]
         p1 = Process(target=parallelFitness,args=(m1,q))
         p1.start()
-        #m2 = pop[int((tpop/4)+1):int((tpop/4)*2)]
-        #p2 = Process(target=parallelFitness,args=(m2,q))
-        #p2.start()
-        #m3 = pop[int(((tpop/4)*2)+1):int((tpop/4)*3)]
-        #p3 = Process(target=parallelFitness,args=(m3,q))
-        #p3.start()
-        #m4 = pop[int(((tpop/4)*3)+1):]
-        #p4 = Process(target=parallelFitness,args=(m4,q))
-        #p4.start()
+        m2 = pop[int((tpop/4)+1):int((tpop/4)*2)]
+        p2 = Process(target=parallelFitness,args=(m2,q))
+        p2.start()
+        m3 = pop[int(((tpop/4)*2)+1):int((tpop/4)*3)]
+        p3 = Process(target=parallelFitness,args=(m3,q))
+        p3.start()
+        m4 = pop[int(((tpop/4)*3)+1):]
+        p4 = Process(target=parallelFitness,args=(m4,q))
+        p4.start()
 
         mejorfitness = 0
         presults = []
