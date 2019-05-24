@@ -270,18 +270,27 @@ def parallelFitness(mmatriz,q):
         palabra = ""
         nkmers = len(matriz.kmers)
         for k in range(len(matriz.kmers[0].adn)):
+            pal = ""
             counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
             for i in matriz.kmers:
                 counts[i.adn[k]]+=1
+                pal = pal + i.adn[k]
             valor = counts.values()
-            maximo = max(valor)
 
+
+            maximo = max(valor)
+            print("maximo "+str(maximo))
             if (maximo == nkmers):
                 maximo = maximo + nkmers
             fitness = fitness + maximo
-
-            propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
-            matriz.setFitness(propor)
+            print(counts)
+            print(valor)
+            print(fitness)
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
+        print(propor)
+        showMatriz(matriz)
+        exit()
+        matriz.setFitness(propor)
         localr.append(matriz)
 
     q.put(localr)
@@ -829,15 +838,15 @@ def genetico(poblacion,ciclos,datos,lkmer):
         m1 = pop[:int(tpop/4)]
         p1 = Process(target=parallelFitness,args=(m1,q))
         p1.start()
-        m2 = pop[int((tpop/4)+1):int((tpop/4)*2)]
-        p2 = Process(target=parallelFitness,args=(m2,q))
-        p2.start()
-        m3 = pop[int(((tpop/4)*2)+1):int((tpop/4)*3)]
-        p3 = Process(target=parallelFitness,args=(m3,q))
-        p3.start()
-        m4 = pop[int(((tpop/4)*3)+1):]
-        p4 = Process(target=parallelFitness,args=(m4,q))
-        p4.start()
+        #m2 = pop[int((tpop/4)+1):int((tpop/4)*2)]
+        #p2 = Process(target=parallelFitness,args=(m2,q))
+        #p2.start()
+        #m3 = pop[int(((tpop/4)*2)+1):int((tpop/4)*3)]
+        #p3 = Process(target=parallelFitness,args=(m3,q))
+        #p3.start()
+        #m4 = pop[int(((tpop/4)*3)+1):]
+        #p4 = Process(target=parallelFitness,args=(m4,q))
+        #p4.start()
 
         mejorfitness = 0
         presults = []
@@ -863,9 +872,9 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
 
-        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-generacion.fts")
+        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
         promedio = suma/len(pop)
-        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-fitnesspromedio.fts")
+        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
 
         print ("Generación " +str(c) + " Fitness Promedio " + str(promedio))
 
@@ -907,11 +916,11 @@ def genetico(poblacion,ciclos,datos,lkmer):
     #escribeGeneracion(pop,"GAFinal"+salida+".fts")
 
 datos = cargaSecuencias(sys.argv[1])
+salida = sys.argv[4]
 #1 archivo, 2 ciclo
-
 #poblacion,ciclos,datos,lkmer,umbral,salida,parada
 
-for i in range(7,8):
+for i in range(8,9):
     #poblacion,ciclos
     lkmer = i
     genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
