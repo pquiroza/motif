@@ -276,8 +276,8 @@ def parallelFitness(mmatriz,q):
             valor = counts.values()
             maximo = max(valor)
 
-            #if (maximo > nkmers*0.88):
-            #    maximo = maximo + nkmers
+            if (maximo == nkmers):
+                maximo = maximo + nkmers
             fitness = fitness + maximo
 
             propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(lkmer*len(datos))))
@@ -285,7 +285,7 @@ def parallelFitness(mmatriz,q):
         localr.append(matriz)
 
     q.put(localr)
-   
+
 
 
 def getFitness(matriz):
@@ -786,10 +786,10 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
         semuta = random.randint(0,100)
-
-        if (semuta<15):
-
-            mutados = random.randint(0,(int(len(pop)/2)))
+        #sin mutacion
+        if (1==15):
+            print("Sin mutacion")
+            mutados = random.randint(0,len(pop))
             print ("Mutando "+str(mutados))
             for m in range(mutados):
 
@@ -811,14 +811,14 @@ def genetico(poblacion,ciclos,datos,lkmer):
             #print "Cruza 2 " +str(cruza2)
             hijo1,hijo2 = cruzamiento(pop[cruza1],pop[cruza2])
 
-            poptemp.append(hijo1)
-            poptemp.append(hijo2)
+            pop.append(hijo1)
+            pop.append(hijo2)
 
         #escribeGeneracion(pop,"Gens"+str(c)+".fts")
         #pop = hijos
 
-        pop = []
-        pop = copy.deepcopy(poptemp)
+        #pop = []
+        #pop = copy.deepcopy(poptemp)
 
 
 
@@ -857,17 +857,12 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
         print(fitnessacum,mejorg.fitness)
 
-        if(mejorg.fitness<=fitnessacum):
-            contador = contador + 1
-            print("ESTANCADO "+str(contador))
+
         if (mejorg.fitness>fitnessacum):
             fitnessacum = mejorg.fitness
-            contador = 0
 
-        if (contador == 30):
-            print("TERMINANDO ALGORITMO")
-            escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-"+str(ciclos)+"-generacion.fts")
-            return 1
+
+
         escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-generacion.fts")
         promedio = suma/len(pop)
         escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+"-fitnesspromedio.fts")
@@ -916,7 +911,7 @@ datos = cargaSecuencias(sys.argv[1])
 
 #poblacion,ciclos,datos,lkmer,umbral,salida,parada
 
-for i in range(10,16):
+for i in range(7,8):
     #poblacion,ciclos
     lkmer = i
     genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
