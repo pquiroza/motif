@@ -2,6 +2,9 @@ import random
 import copy
 import decimal
 import sys
+import uuid
+import hashlib
+
 
 from multiprocessing import Process, Queue
 from collections import Counter
@@ -31,12 +34,15 @@ class Kmer:
 
 
 class matrix:
-    def __init__(self, kmers,fitness,fitness2,motif):
+    def __init__(self, kmers,fitness,fitness2,motif,code):
         self.kmers = kmers
         self.fitness = fitness
         self.fitness2 = fitness2
         self.motif = motif
+        self.code = code
 
+    def setCode(self,code):
+        self.code = code
 
     def setKmer(self,posicion,kmer):
         self.kmers[posicion] = kmer
@@ -246,7 +252,7 @@ def generaVecino2(datos,largo):
 
 def generaMatrizInicial(datos,largo):
     kmers = []
-    matriz = matrix(kmers,0,0,"")
+    matriz = matrix(kmers,0,0,"","")
 
     identificador = 0
     for i in datos:
@@ -312,7 +318,9 @@ def parallelFitness(mmatriz,q):
             counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
             for i in matriz.kmers:
                 counts[i.adn[k]]+=1
-                pal = pal + i.adn[k]
+                pal = pal + i.adn
+
+            ho = hashlib.md5(pal.encode())
             valor = counts.values()
 
 
@@ -330,6 +338,7 @@ def parallelFitness(mmatriz,q):
 
         propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+lkmers+20)*lkmers)))
         matriz.setFitness(propor)
+        matriz.setCode(ho.hexdigest())
 
 
         localr.append(matriz)
@@ -715,17 +724,24 @@ def newseleccion(population,umbral,media):
 
 def parallelSeleccion(poplocal,q):
     ganadores = []
+    distintos = {}
     largo = len(poplocal)
     while(len(poplocal)>2):
         participante1 = random.randint(0,len(poplocal)-2)
         participante2 = random.randint(0,len(poplocal)-2)
 
         if (poplocal[participante1].fitness >= poplocal[participante2].fitness):
-            ganadores.append(poplocal[participante1])
+            if (poplocal[participante1].code not in distintos):
+                ganadores.append(poplocal[participante1])
+                distintos[poplocal[participante1].code]=1
+
 
 
         else:
-            ganadores.append(poplocal[participante2])
+            if (poplocal[participante2].code  not in distintos):
+                ganadores.append(poplocal[participante2])
+                distintos[poplocal[participante1].code]=1
+
         poplocal.pop(participante1)
         poplocal.pop(participante2)
 
@@ -850,20 +866,16 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
     pop = copy.deepcopy(population)
-    print(len(pop))
 
     for c in range(ciclos):
         promedio = 0
         suma = 0
-        print(len(pop))
-        print ("Lkmer "+str(lkmer)+" Ciclo "+str(c))
 
 
         semuta = random.randint(0,100)
         #sin mutacion
         if (semuta<15):
             mutados = random.randint(0,len(pop))
-            print ("Mutando "+str(mutados))
             for m in range(mutados):
 
                 amutar = random.randint(0,len(pop)-1)
@@ -928,7 +940,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
                 suma = suma + m.fitness
                 pop.append(m)
 
-        print(fitnessacum,mejorg.fitness)
 
 
         if (mejorg.fitness>fitnessacum):
@@ -936,14 +947,10 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
 
-        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
+
         promedio = suma/len(pop)
-        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
 
-        print ("Generación " +str(c) + " Fitness Promedio " + str(promedio))
-
-
-
+        largoantessel = len(pop)
 
 
         pop2 = copy.deepcopy(pop)
@@ -974,7 +981,11 @@ def genetico(poblacion,ciclos,datos,lkmer):
         #pop = seleccion(pop2,poblacion)
         #pop = seleccion(pop,umbral)
 
+        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
 
+        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
+
+        print ("Generación " +str(c) + " Fitness Promedio " + str(promedio)+"Tamaño antes de sel "+str(largoantessel)+" Tamaño Poblacion "+str(len(pop))+" Mejor Individuop "+str(mejorg.fitness))
 
 
     #escribeGeneracion(pop,"GAFinal"+salida+".fts")
@@ -984,11 +995,9 @@ salida = sys.argv[4]
 #1 archivo, 2 ciclo
 #poblacion,ciclos,datos,lkmer,umbral,salida,parada
 
-for i in range(6,7):
-    #poblacion,ciclos
-    lkmer = i
-    annealing2(int(sys.argv[2]),int(sys.argv[3]),i,datos,salida)
-    #genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
+    #annealing2(int(sys.argv[2]),int(sys.argv[3]),i,datos,salida)
+lkmer = int(sys.argv[5])
+genetico(int(sys.argv[2]),int(sys.argv[3]),datos,lkmer)
 #for i in range(int(sys.argv[4]),int(sys.argv[5])):
         #ejecutar(int(sys.argv[2]),int(sys.argv[3]),i,datos,sys.argv[6],sys.argv[7])
         #annealing2(int(sys.argv[2]),int(sys.argv[3]),i,datos,sys.argv[6]+"a",sys.argv[7])
