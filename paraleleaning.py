@@ -303,7 +303,24 @@ def fitnessAnnealing(matriz):
 
     return propor
 
+def parallelCruzamiento(population,q):
+    sons = []
+    for i in range (0,int(int(sys.argv[2])/4)):
 
+        cruza1 = random.randint(0,len(population)-1)
+        cruza2 = random.randint(0,len(population)-1)
+        hijo1 = copy.deepcopy(population[cruza1])
+        hijo2 = copy.deepcopy(population[cruza2])
+        cruce1 = random.randint(1,len(population[0].kmers)-1)
+
+        for i in range(cruce1,len(population[0].kmers)):
+            kmerp = population[cruza1].kmers[i]
+            hijo1.setKmer(i,population[cruza2].kmers[i])
+            hijo2.setKmer(i,kmerp)
+        sons.append(hijo1)
+        sons.append(hijo2)
+
+    q.put(sons)
 
 def parallelFitness(mmatriz,q):
     localr = []
@@ -854,7 +871,7 @@ def genetico(poblacion,ciclos,datos,lkmer):
     contador = 0
     fitnessacum = 0
 
-    start_time = time.process_time()
+
 
     #Genera poblacion inicial
     for i in range (poblacion):
@@ -866,14 +883,11 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
     pop = copy.deepcopy(population)
-    end_time = time.process_time()
-    print("Generation Time")
-    print(end_time-start_time)
 
     for c in range(ciclos):
         promedio = 0
         suma = 0
-
+        start_time = time.process_time()
 
         semuta = random.randint(0,100)
         #sin mutacion
@@ -889,55 +903,73 @@ def genetico(poblacion,ciclos,datos,lkmer):
                 pop[amutar].setFitness(propor)
 
 
-
-        hijos = []
-        poptemp = []
-        start_time = time.process_time()
-        for i in range(poblacion):
-            cruza1 = random.randint(0,len(pop)-1)
-            cruza2 = random.randint(0,len(pop)-1)
-            #print "Cruza 1 " +str(cruza1)
-            #print "Cruza 2 " +str(cruza2)
-            hijo1,hijo2 = cruzamiento(pop[cruza1],pop[cruza2])
-
-            pop.append(hijo1)
-            pop.append(hijo2)
-
-        #escribeGeneracion(pop,"Gens"+str(c)+".fts")
-        #pop = hijos
-
-        #pop = []
-        #pop = copy.deepcopy(poptemp)
+        q = Queue()
+        p1 = Process(target=parallelCruzamiento,args=(pop,q))
+        p1.start()
+        p2 = Process(target=parallelCruzamiento,args=(pop,q))
+        p2.start()
+        p3 = Process(target=parallelCruzamiento,args=(pop,q))
+        p3.start()
+        p4 = Process(target=parallelCruzamiento,args=(pop,q))
+        p4.start()
+        p5 = Process(target=parallelCruzamiento,args=(pop,q))
+        p5.start()
+        p6 = Process(target=parallelCruzamiento,args=(pop,q))
+        p6.start()
+        p7 = Process(target=parallelCruzamiento,args=(pop,q))
+        p7.start()
+        p8 = Process(target=parallelCruzamiento,args=(pop,q))
+        p8.start()
 
 
-        end_time = time.process_time()
-        print("Crossing Time")
-        print(end_time-start_time)
-        print(len(pop))
-        exit()
+        cresults = []
+        for ps in range(8):
+            cresults.append(q.get(True))
+        for pr in cresults:
+            for m in pr:
+                pop.append(m)
 
 
-        start_time = time.process_time()
+
+
+
+
+
+
+
         q = Queue()
         tpop = len(pop)
-        m1 = pop[:int(tpop/4)]
+        m1 = pop[:int(tpop/8)]
         p1 = Process(target=parallelFitness,args=(m1,q))
         p1.start()
-        m2 = pop[int((tpop/4)+1):int((tpop/4)*2)]
+        m2 = pop[int((tpop/8)+1):int((tpop/8)*2)]
         p2 = Process(target=parallelFitness,args=(m2,q))
         p2.start()
-        m3 = pop[int(((tpop/4)*2)+1):int((tpop/4)*3)]
+        m3 = pop[int(((tpop/8)*2)+1):int((tpop/8)*3)]
         p3 = Process(target=parallelFitness,args=(m3,q))
         p3.start()
-        m4 = pop[int(((tpop/4)*3)+1):]
+        m4 = pop[int(((tpop/8)*3)+1):int((tpop/8)*4)]
         p4 = Process(target=parallelFitness,args=(m4,q))
         p4.start()
+        m5 = pop[int(((tpop/8)*4)+1):int((tpop/8)*5)]
+        p5 = Process(target=parallelFitness,args=(m5,q))
+        p5.start()
+        m6 = pop[int(((tpop/8)*5)+1):int((tpop/8)*6)]
+        p6 = Process(target=parallelFitness,args=(m6,q))
+        p6.start()
+        m7 = pop[int(((tpop/8)*6)+1):int((tpop/8)*7)]
+        p7 = Process(target=parallelFitness,args=(m7,q))
+        p7.start()
+        m8 = pop[int(((tpop/8)*7)+1):]
+        p8 = Process(target=parallelFitness,args=(m8,q))
+        p8.start()
+
 
         mejorfitness = 0
         presults = []
         pop = []
         mejorg = None
-        for ps in range(4):
+        for ps in range(8):
             presults.append(q.get(True))
         for pr in presults:
             for m in pr:
@@ -960,25 +992,33 @@ def genetico(poblacion,ciclos,datos,lkmer):
         promedio = suma/len(pop)
 
         largoantessel = len(pop)
-        end_time = time.process_time()
-        print("Fitness Time")
-        print(end_time-start_time)
-        start_time = time.process_time()
         pop2 = copy.deepcopy(pop)
         qs = Queue()
         tpop = len(pop2)
-        m1 = pop2[:int(tpop/4)]
+        m1 = pop2[:int(tpop/8)]
         p1 = Process(target=parallelSeleccion,args=(m1,qs))
         p1.start()
-        m2 = pop2[int((tpop/4)+1):int((tpop/4)*2)]
+        m2 = pop2[int((tpop/8)+1):int((tpop/8)*2)]
         p2 = Process(target=parallelSeleccion,args=(m2,qs))
         p2.start()
-        m3 = pop2[int(((tpop/4)*2)+1):int((tpop/4)*3)]
+        m3 = pop2[int(((tpop/8)*2)+1):int((tpop/8)*3)]
         p3 = Process(target=parallelSeleccion,args=(m3,qs))
         p3.start()
-        m4 = pop2[int(((tpop/4)*3)+1):]
+        m4 = pop[int(((tpop/8)*3)+1):int((tpop/8)*4)]
         p4 = Process(target=parallelSeleccion,args=(m4,qs))
         p4.start()
+        m5 = pop[int(((tpop/8)*4)+1):int((tpop/8)*5)]
+        p5 = Process(target=parallelSeleccion,args=(m5,qs))
+        p5.start()
+        m6 = pop[int(((tpop/8)*5)+1):int((tpop/8)*6)]
+        p6 = Process(target=parallelSeleccion,args=(m6,qs))
+        p6.start()
+        m7 = pop[int(((tpop/8)*6)+1):int((tpop/8)*7)]
+        p7 = Process(target=parallelSeleccion,args=(m7,qs))
+        p7.start()
+        m8 = pop[int(((tpop/8)*7)+1):]
+        p8 = Process(target=parallelSeleccion,args=(m8,qs))
+        p8.start()
         pop = []
         psseleccion = []
 
@@ -992,13 +1032,13 @@ def genetico(poblacion,ciclos,datos,lkmer):
         #pop = seleccion(pop2,poblacion)
         #pop = seleccion(pop,umbral)
 
-        #escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
+        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
 
-        #escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
+        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
         end_time = time.process_time()
-        print("Seleccion Time")
+        print("Cicle Time")
         print(end_time-start_time)
-        exit()
+
         print ("Generación " +str(c) + " Fitness Promedio " + str(promedio)+"Tamaño antes de sel "+str(largoantessel)+" Tamaño Poblacion "+str(len(pop))+" Mejor Individuop "+str(mejorg.fitness))
 
 
