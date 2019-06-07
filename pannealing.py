@@ -798,22 +798,21 @@ def seleccionespecial(population,umbral,datos):
     return sel
 
 def mutacion(individuo,datos):
-    #print("MUTANDO")
     mutado = copy.deepcopy(individuo)
     cambios = random.randint(1,len(individuo.kmers)-1)
-    ncambios = random.randint(1,len(individuo.kmers)-1)
 
-
-    if (individuo.kmers[ncambios].posicioninicial + individuo.kmers[ncambios].largo + 1 > len(datos[ncambios])):
-        kmer = Kmer(ncambios,individuo.kmers[ncambios].adn,individuo.kmers[ncambios].posicioninicial,individuo.kmers[ncambios].largo)
-        kmer.posicioninicial = kmer.posicioninicial -1
-        kmer.adn = getPalabra(datos,ncambios,kmer.posicioninicial,kmer.largo)
-        individuo.setKmer(ncambios,kmer)
-    else:
-        kmer = Kmer(ncambios,individuo.kmers[ncambios].adn,individuo.kmers[ncambios].posicioninicial,individuo.kmers[ncambios].largo)
-        kmer.posicioninicial = kmer.posicioninicial + 1
-        kmer.adn = getPalabra(datos,ncambios,kmer.posicioninicial,kmer.largo)
-        individuo.setKmer(ncambios,kmer)
+    for i in range (cambios):
+        ncambios = random.randint(1,len(individuo.kmers)-1)
+        if (individuo.kmers[ncambios].posicioninicial + individuo.kmers[ncambios].largo + 1 > len(datos[ncambios])):
+            kmer = Kmer(ncambios,individuo.kmers[ncambios].adn,individuo.kmers[ncambios].posicioninicial,individuo.kmers[ncambios].largo)
+            kmer.posicioninicial = kmer.posicioninicial -1
+            kmer.adn = getPalabra(datos,ncambios,kmer.posicioninicial,kmer.largo)
+            individuo.setKmer(ncambios,kmer)
+        else:
+            kmer = Kmer(ncambios,individuo.kmers[ncambios].adn,individuo.kmers[ncambios].posicioninicial,individuo.kmers[ncambios].largo)
+            kmer.posicioninicial = kmer.posicioninicial + 1
+            kmer.adn = getPalabra(datos,ncambios,kmer.posicioninicial,kmer.largo)
+            individuo.setKmer(ncambios,kmer)
 
 
 
@@ -854,7 +853,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
     contador = 0
     fitnessacum = 0
 
-    start_time = time.process_time()
 
     #Genera poblacion inicial
     for i in range (poblacion):
@@ -866,11 +864,11 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
     pop = copy.deepcopy(population)
-    end_time = time.process_time()
-    print("Generation Time")
-    print(end_time-start_time)
+
+
 
     for c in range(ciclos):
+        start_time = time.process_time()
         promedio = 0
         suma = 0
 
@@ -878,7 +876,9 @@ def genetico(poblacion,ciclos,datos,lkmer):
         semuta = random.randint(0,100)
         #sin mutacion
         if (semuta<15):
-            mutados = random.randint(0,len(pop))
+
+            mutados = random.randint(0,int(len(pop)/2))
+            print("mutando "+str(mutados))
             for m in range(mutados):
 
                 amutar = random.randint(0,len(pop)-1)
@@ -890,9 +890,15 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
 
+
+        #if(len(pop)<poblacion):
+        #    for i in range(len(pop),poblacion):
+        #        m = generaMatrizInicial(datos,lkmer)
+        #        pop.append(m)
+
         hijos = []
         poptemp = []
-        start_time = time.process_time()
+
         for i in range(poblacion):
             cruza1 = random.randint(0,len(pop)-1)
             cruza2 = random.randint(0,len(pop)-1)
@@ -900,24 +906,18 @@ def genetico(poblacion,ciclos,datos,lkmer):
             #print "Cruza 2 " +str(cruza2)
             hijo1,hijo2 = cruzamiento(pop[cruza1],pop[cruza2])
 
-            pop.append(hijo1)
+            hijos.append(hijo1)
             pop.append(hijo2)
 
         #escribeGeneracion(pop,"Gens"+str(c)+".fts")
-        #pop = hijos
+        pop = []
+        pop = hijos
 
         #pop = []
         #pop = copy.deepcopy(poptemp)
 
 
-        end_time = time.process_time()
-        print("Crossing Time")
-        print(end_time-start_time)
-        print(len(pop))
-        exit()
 
-
-        start_time = time.process_time()
         q = Queue()
         tpop = len(pop)
         m1 = pop[:int(tpop/4)]
@@ -960,10 +960,7 @@ def genetico(poblacion,ciclos,datos,lkmer):
         promedio = suma/len(pop)
 
         largoantessel = len(pop)
-        end_time = time.process_time()
-        print("Fitness Time")
-        print(end_time-start_time)
-        start_time = time.process_time()
+
         pop2 = copy.deepcopy(pop)
         qs = Queue()
         tpop = len(pop2)
@@ -992,13 +989,12 @@ def genetico(poblacion,ciclos,datos,lkmer):
         #pop = seleccion(pop2,poblacion)
         #pop = seleccion(pop,umbral)
 
-        #escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
+        escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
 
-        #escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
+        escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
         end_time = time.process_time()
-        print("Seleccion Time")
+        print("Ciclo Time")
         print(end_time-start_time)
-        exit()
         print ("Generación " +str(c) + " Fitness Promedio " + str(promedio)+"Tamaño antes de sel "+str(largoantessel)+" Tamaño Poblacion "+str(len(pop))+" Mejor Individuop "+str(mejorg.fitness))
 
 
