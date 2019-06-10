@@ -11,13 +11,33 @@ public:
   string adn;
   int posicioninicial;
   int largo;
+
+  Kmer(string a, int pi, int l){
+    adn = a;
+    posicioninicial = pi;
+    largo = l;
+  }
 };
 
 class Matrix
 { public:
   vector<Kmer> kmers;
-  double fitnness;
+  float fitness;
   string code;
+
+  Matrix(vector<Kmer> k,float fts, string cod){
+    kmers = k;
+    fitness = fts;
+    code = cod;
+  }
+
+
+  void setKmer(int posicion,Kmer kmer){
+    kmers.at(posicion) = kmer;
+  }
+  void setFitness(float fitness2) {
+    fitness = fitness2;
+  }
 
 };
 
@@ -53,10 +73,7 @@ vector<string> cargaDatos(string archivo){
   else {
     cout << "no se puede abrir archivo";
   }
-  cout << "Datos : " << datos.size();
-  for (int i=0; i<datos.size();i++){
-    cout << datos.at(i) << '\n';
-  }
+
 
   return datos;
 
@@ -65,10 +82,21 @@ vector<string> cargaDatos(string archivo){
 }
 
 
+Matrix generaMatrizInicial(vector<string> datos, int largo){
+
+}
+
+
 int main(int nNumberofArgs, char* pszArgs[])
 {
-cargaDatos("PS00010.fa");
+vector<string> datos =cargaDatos("PS00010.fa");
+cout << "Datos : " << datos.size();
+/*
+for (int i=0; i<datos.size();i++){
+  cout << datos.at(i) << '\n';
 
+}
+*/
 
 
 }
