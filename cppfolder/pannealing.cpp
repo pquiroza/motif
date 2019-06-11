@@ -5,6 +5,7 @@
 #include <vector>
 #include <random>
 #include <unordered_map>
+#include <mpi.h>
 using namespace std;
 
 
@@ -81,7 +82,7 @@ vector<string> cargaDatos(string archivo){
 
 }
 
-
+/*
 int generateRandomnumber(int limite){
 
   std::random_device rd;
@@ -95,15 +96,15 @@ int generateRandomnumber(int limite){
 
 }
 
-
+*/
 Matrix generaMatrizInicial(vector<string> datos, int largo){
   //cout << datos.size() << '\n';
   vector<Kmer> kmers;
   for (int i = 0;i<datos.size();i++){
 
 
-    int t = generateRandomnumber(datos.at(i).length()-largo);
-
+    //int t = generateRandomnumber(datos.at(i).length()-largo);
+    int t = 10;
 
     string pal = datos.at(i).substr(t,largo);
     Kmer k = Kmer(pal,t,largo);
@@ -115,14 +116,14 @@ Matrix m = Matrix(kmers,0,"");
 return m;
 
 }
-
+/*
 void showMatriz(Matrix m){
   for (int i =0;i<m.kmers.size();i++){
     cout << m.kmers.at(i).adn<< " " << m.kmers.at(i).posicioninicial << '\n';
   }
 }
 
-
+*/
 
 /*
 template<typename K, typename V>
@@ -133,7 +134,7 @@ void print_map(std::unordered_map<K,V> const &m)
     }
 }
 */
-
+/*
 float getFitness(Matrix m){
 
   unordered_map<char,int> umap;
@@ -190,9 +191,12 @@ suma = suma + maximo +  ceros;
 float total = (float) suma / (m.kmers.at(0).adn.length() * (m.kmers.size()+(m.kmers.size()-1)));
 return total;
 }
-
+*/
 void genetico(vector<string> datos, int poblacion, int ciclos, int lkmer,string salida){
   vector<Matrix> pop;
+  int rank, size, rc;
+
+
   for (int i =0;i<poblacion;i++) {
   Matrix m = generaMatrizInicial(datos,lkmer);
   pop.push_back(m);
@@ -200,7 +204,7 @@ void genetico(vector<string> datos, int poblacion, int ciclos, int lkmer,string 
 
 
 for (int i =0;i<pop.size();i++){
-  cout << "Fitness " << getFitness(pop.at(i)) << '\n';
+//  cout << "Fitness " << getFitness(pop.at(i)) << '\n';
 }
 
 }
@@ -208,13 +212,14 @@ for (int i =0;i<pop.size();i++){
 
 
 
-int main(int nNumberofArgs, char* pszArgs[])
+int main(int argc, char **argv)
 {
 
 
 
 vector<string> datos =cargaDatos("PS00010.fa");
 //cout << "Datos : " << datos.size() << '\n';
+int rank, size, rc;
 
 genetico(datos,100000,100,6,"salida");
 /*

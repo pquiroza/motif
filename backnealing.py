@@ -76,7 +76,98 @@ def HammingDistance(kmer1,kmer2):
     return contador
 
 
+def HammingMatrix(matriz,datos):
+    contador = 0
+    totales = []
+    for i in matriz.kmers:
+        hamming = []
 
+        for j in matriz.kmers:
+            distancia =  HammingDistance(i.adn,j.adn)
+            if (distancia==0 and i!=j):
+                contador = contador + 1
+
+            hamming.append(distancia)
+        suma = sum(hamming)
+
+        totales.append(suma)
+
+
+    if (contador/2 > 2):
+        adn = valorrepetido(matriz)
+        valor = 0
+
+        for cd in cadn:
+            if (cd == adn):
+                valor = 1
+
+
+        if (valor==0):
+            candidatos.append(matriz)
+            cadn.append(adn)
+
+
+        #escribemejor("candidatos2.fts",matriz,len(matriz.kmers[0].adn),"CANDIDATO")
+
+    total = sum(totales)
+
+    return total
+
+def HammingMatrixr(matriz,datos):
+    contador = 0
+    totales = []
+
+
+    for i in range(len(matriz.kmers)):
+        hamming = []
+
+        for j in range(i,len(matriz.kmers)):
+            distancia =  HammingDistance(matriz.kmers[i].adn,matriz.kmers[j].adn)
+            if (distancia==0 and i!=j):
+                contador = contador + 1
+
+            hamming.append(distancia)
+        suma = sum(hamming)
+
+        totales.append(suma)
+
+
+    if (contador/2 > 2):
+        adn = valorrepetido(matriz)
+        valor = 0
+
+        for cd in cadn:
+            if (cd == adn):
+                valor = 1
+
+
+        if (valor==0):
+            candidatos.append(matriz)
+            cadn.append(adn)
+
+
+        #escribemejor("candidatos2.fts",matriz,len(matriz.kmers[0].adn),"CANDIDATO")
+
+    total = sum(totales)
+
+    return total
+
+def HammingMatrix2(matriz):
+
+    totales = []
+    for i in matriz.kmers:
+        hamming = []
+        for j in matriz.kmers:
+
+
+            distancia =  HammingDistance(i.adn,j.adn)
+            hamming.append(distancia)
+        suma = sum(hamming)
+
+        totales.append(suma)
+
+
+    return totales
 
 def getPalabra(datos,start,posicioninicial,largo):
     genome = datos[start]
@@ -589,16 +680,6 @@ def annealing2(ciclo,tinicial,lkmer,datos,salida):
     #procesaCandidatos(candidatos,datos,lkmer,umbral,salida)
 
 
-def mpiCruzamiento(pop):
-    if rank == 0:
-        for i in range(1,size):
-              comm.Send(pop,dest=i,tag=10)
-
-    else:
-
-        comm.Recv(pop,source=0,tag=10)
-        print("Rank "+str(rank)+" Len "+str(len(pop)))
-
 
 
 def cruzamiento(m1,m2):
@@ -822,8 +903,7 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
         hijos = []
         poptemp = []
-        mpiCruzamiento(pop)
-        exit()
+
         for i in range(poblacion):
             cruza1 = random.randint(0,len(pop)-1)
             cruza2 = random.randint(0,len(pop)-1)
@@ -924,9 +1004,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
     escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
-
-
-
 
 datos = cargaSecuencias(sys.argv[1])
 salida = sys.argv[4]
