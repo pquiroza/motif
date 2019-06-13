@@ -12,8 +12,8 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 25000
-largo = 6
+poblacion = 5000
+largo = 8
 datos = []
 pop = []
 
@@ -56,11 +56,30 @@ def showMatriz(matriz):
         print (i.adn)
     print (matriz.fitness)
 
+def escribeFitness(fitness,lkmer,archivo):
+    f = open(archivo,'a')
+    f.write(str(fitness))
+    f.write('\n')
+    f.close
 
+
+def escribeindividuo(individuo,generacion,archivo):
+    f=open(archivo,'a')
+    f.write("Motifs "+str(generacion))
+    f.write('\n')
+    for i in individuo.kmers:
+
+        f.write(i.adn +" " +str(i.posicioninicial))
+        f.write('\n')
+
+    f.write(str(individuo.fitness))
+    f.write('\n')
+    f.close
 
 
 def cargaSecuencias(archivo):
-    datos = []
+
+    #datos = []
     f = open(archivo,'r')
     secuencia = ""
     for line in f:
@@ -84,10 +103,10 @@ def cargaSecuencias(archivo):
 
 
 
-    return datos
+    #return datos
 
 
-def generaMatrizInicial(datos,largo):
+def generaMatrizInicial(largo):
     kmers = []
     matriz = matrix(kmers,0,0,"","")
 
@@ -145,30 +164,120 @@ def parallelFitness(mmatriz):
         matriz.setCode(ho.hexdigest())
 
 
+def cruzamiento(m1,m2):
+
+    hijo1 = copy.deepcopy(m1)
+    hijo2 = copy.deepcopy(m2)
+
+    cruce1 = random.randint(1,len(m1.kmers)-1)
+
+
+
+    for i in range(cruce1,len(m1.kmers)):
+        kmerp = m1.kmers[i]
+        hijo1.setKmer(i,m2.kmers[i])
+        hijo2.setKmer(i,kmerp)
+
+
+    return hijo1,hijo2
+
+def seleccion(popl):
+    ganadores = []
+    distintos = {}
+    largo = len(popl)
+    while(len(popl)>2):
+        participante1 = random.randint(0,len(popl)-2)
+        participante2 = random.randint(0,len(popl)-2)
+
+        if (popl[participante1].fitness >= popl[participante2].fitness):
+            #if (popl[participante1].code not in distintos):
+            ganadores.append(popl[participante1])
+            #    distintos[popl[participante1].code]=1
+
+
+
+        else:
+            #if (popl[participante2].code  not in distintos):
+            ganadores.append(popl[participante2])
+            #distintos[popl[participante1].code]=1
+
+        popl.pop(participante1)
+        popl.pop(participante2)
+
+    return ganadores
+
 
 
 if (rank==0):
     popglobal = []
-    print("Soy el jefe")
-    for i in range (1,size):
-        lista = comm.recv(source=i)
-        for l in lista:
-            popglobal.append(l)
+    print("Iniciando Trabajo")
+    cargaSecuencias(archivo)
 
-    for p in range(len(popglobal)):
-        print(p,popglobal[p].fitness)
+    #for i in range(1,size):
+    #    comm.send(datos,dest=i,tag=10)
+    popglobal = []
+    for c in range(1000):
+        #start_time = time.process_time()
+        for i in range(1,size):
+            comm.send(popglobal,dest=i,tag=20)
+        popglobal=[]
+        for i in range (1,size):
+            lista = comm.recv(source=i,tag=30)
 
+            for l in lista:
+                popglobal.append(l)
+        suma = 0
+        mejor = None
+        mejorfitness = 0
+        for p in popglobal:
+            suma = suma + p.fitness
+            if (p.fitness > mejorfitness):
+                mejorfitness = p.fitness
+                mejorg = copy.deepcopy(p)
+        print(c,suma/len(popglobal),len(popglobal))
+        escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
+        escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+
+        #end_time = time.process_time()
+        #print("Ciclo Time")
+        #print(end_time-start_time)
 
 if (rank!=0):
-    poplocal = []
-    datos = cargaSecuencias(archivo)
-    print(len(datos))
-    for i in range(poblacion):
-        m = generaMatrizInicial(datos,largo)
-        poplocal.append(m)
-    parallelFitness(poplocal)
+    cargaSecuencias(archivo)
+    while(True):
+
+
+        poplocal = comm.recv(source=0,tag=20)
+
+        if (len(poplocal)==0):
+            poplocal = []
+            for i in range(poblacion):
+                m = generaMatrizInicial(largo)
+                poplocal.append(m)
+
+
+        hijos = []
+        for i in range(poblacion):
+            cruza1 = random.randint(0,len(poplocal)-1)
+            cruza2 = random.randint(0,len(poplocal)-1)
+
+            hijo1,hijo2 = cruzamiento(poplocal[cruza1],poplocal[cruza2])
+            hijos.append(hijo1)
+            hijos.append(hijo2)
+        poplocal = []
+        poplocal = hijos
+
+        parallelFitness(poplocal)
+        seleccionados = seleccion(poplocal)
+
+        poplocal = []
+        poplocal = seleccionados
+        print(rank,len(poplocal))
 
 
 
 
-    comm.send(poplocal,dest=0)
+
+
+
+        comm.send(poplocal,dest=0,tag=30)

@@ -9,10 +9,7 @@ import time
 from multiprocessing import Process, Queue
 from collections import Counter
 
-from mpi4py import MPI
-comm = MPI.COMM_WORLD
-size = comm.Get_size()
-rank = comm.Get_rank()
+
 
 datos = []
 datos2 = []
@@ -873,7 +870,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
 
 
     for c in range(ciclos):
-        start_time = time.process_time()
         promedio = 0
         suma = 0
 
@@ -997,11 +993,6 @@ def genetico(poblacion,ciclos,datos,lkmer):
         escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
 
         escribeFitness(promedio,lkmer,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-fitnesspromedio.fts")
-        end_time = time.process_time()
-        print("Ciclo Time")
-        print(end_time-start_time)
-        print ("Generación " +str(c) + " Fitness Promedio " + str(promedio)+"Tamaño antes de sel "+str(largoantessel)+" Tamaño Poblacion "+str(len(pop))+" Mejor Individuop "+str(mejorg.fitness))
-
 
     escribeindividuo(mejorg,c,"results/"+sys.argv[1]+str(lkmer)+"-"+str(len(datos))+salida+"-generacion.fts")
 
