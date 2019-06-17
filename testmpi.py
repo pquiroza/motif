@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 25000
+poblacion = 10000
 largo = 10
 datos = []
 pop = []
@@ -25,18 +25,7 @@ class Kmer:
         self.posicioninicial = posicioninicial
         self.largo = largo
 
-class nmatrix:
-    def __init__(self, indices,fitness,code):
-        self.indices = indices
-        self.fitness = fitness
-        self.code = code
 
-    def setindice(self,indices):
-        self.indice = indices
-    def setFitness(self,fitness):
-        self.fitness = fitness
-    def setCode(self,code):
-        self.code = code
 
 class matrix:
     def __init__(self, kmers,fitness,fitness2,motif,code):
@@ -227,8 +216,17 @@ if (rank==0):
     #for i in range(1,size):
     #    comm.send(datos,dest=i,tag=10)
     popglobal = []
+    start_time = time.process_time()
+    for i in range(100000):
+        m = generaMatrizInicial(largo)
+        popglobal.append(m)
+    end_time = time.process_time()
+    print("Ciclo Time")
+    print(end_time-start_time)
+    exit()
+
     for c in range(1000):
-        start_time = time.process_time()
+        #start_time = time.process_time()
         for i in range(1,size):
             comm.send(popglobal,dest=i,tag=20)
         popglobal=[]
@@ -249,9 +247,9 @@ if (rank==0):
         escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
         escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
 
-        end_time = time.process_time()
-        print("Global Time")
-        print(end_time-start_time)
+        #end_time = time.process_time()
+        #print("Ciclo Time")
+        #print(end_time-start_time)
 
 if (rank!=0):
     cargaSecuencias(archivo)
@@ -259,18 +257,13 @@ if (rank!=0):
 
 
         poplocal = comm.recv(source=0,tag=20)
-        start_time = time.process_time()
+
         if (len(poplocal)==0):
             poplocal = []
             for i in range(poblacion):
                 m = generaMatrizInicial(largo)
                 poplocal.append(m)
 
-        parallelFitness(poplocal)
-        seleccionados = seleccion(poplocal)
-
-        poplocal = []
-        poplocal = seleccionados
 
         hijos = []
         for i in range(poblacion):
@@ -283,7 +276,11 @@ if (rank!=0):
         poplocal = []
         poplocal = hijos
 
+        parallelFitness(poplocal)
+        seleccionados = seleccion(poplocal)
 
+        poplocal = []
+        poplocal = seleccionados
         print(rank,len(poplocal))
 
 
@@ -293,6 +290,3 @@ if (rank!=0):
 
 
         comm.send(poplocal,dest=0,tag=30)
-        end_time = time.process_time()
-        print("Worker Time")
-        print(end_time-start_time,rank)

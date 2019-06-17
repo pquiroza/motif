@@ -32,7 +32,7 @@ class nmatrix:
         self.code = code
 
     def setindice(self,indices):
-        self.indice = indices
+        self.indices = indices
     def setFitness(self,fitness):
         self.fitness = fitness
     def setCode(self,code):
@@ -90,7 +90,7 @@ def escribeindividuo(individuo,generacion,archivo):
 
 def cargaSecuencias(archivo):
 
-    #datos = []
+    datos = []
     f = open(archivo,'r')
     secuencia = ""
     for line in f:
@@ -114,7 +114,7 @@ def cargaSecuencias(archivo):
 
 
 
-    #return datos
+    return datos
 
 
 def generaMatrizInicial(largo):
@@ -138,7 +138,36 @@ def generaMatrizInicial(largo):
     return matriz
 
 
+def generaMatrizInicialNuevo(largo):
 
+    kmers = []
+    matriz = nmatrix([],0,"")
+    for i in datos:
+        inicio = random.randint(0,len(i)-largo)
+        kmers.append(inicio)
+    matriz.setindice(kmers)
+    matriz.setFitness(0)
+    return matriz
+
+def newFitness(mmatriz):
+    localr = []
+    alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
+    for matriz in mmatriz:
+        ind = 0
+        palabras = []
+        for k in matriz.indices:
+            print (k)
+            print(datos[ind][k:k+largo])
+            palabras.append(datos[ind][k:k+largo])
+            ind = ind + 1
+        print(palabras)
+
+        for i in range(largo):
+            counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
+            for l in palabras:
+                counts[l[i]]+=1
+            print(counts)
+        exit()
 def parallelFitness(mmatriz):
     localr = []
     alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
@@ -218,11 +247,11 @@ def seleccion(popl):
     return ganadores
 
 
-
+datos = cargaSecuencias(archivo)
 if (rank==0):
     popglobal = []
     print("Iniciando Trabajo")
-    cargaSecuencias(archivo)
+    #cargaSecuencias(archivo)
 
     #for i in range(1,size):
     #    comm.send(datos,dest=i,tag=10)
@@ -254,7 +283,7 @@ if (rank==0):
         print(end_time-start_time)
 
 if (rank!=0):
-    cargaSecuencias(archivo)
+
     while(True):
 
 
@@ -263,9 +292,10 @@ if (rank!=0):
         if (len(poplocal)==0):
             poplocal = []
             for i in range(poblacion):
-                m = generaMatrizInicial(largo)
+                m = generaMatrizInicialNuevo(largo)
                 poplocal.append(m)
-
+        newFitness(poplocal)
+        exit()
         parallelFitness(poplocal)
         seleccionados = seleccion(poplocal)
 
