@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 25000
+poblacion = 50000
 largo = 10
 datos = []
 pop = []
@@ -155,19 +155,34 @@ def newFitness(mmatriz):
     for matriz in mmatriz:
         ind = 0
         palabras = []
+        fitness=0
         for k in matriz.indices:
-            print (k)
-            print(datos[ind][k:k+largo])
+            #print (k)
             palabras.append(datos[ind][k:k+largo])
             ind = ind + 1
-        print(palabras)
 
         for i in range(largo):
-            counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
-            for l in palabras:
-                counts[l[i]]+=1
-            print(counts)
-        exit()
+                counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
+
+                for l in palabras:
+                    counts[l[i]]+=1
+                #print(counts)
+
+                valor = counts.values()
+                maximo = max(valor)
+                if(maximo == largo):
+                    maximo = maximo + largo
+                fitness = fitness + maximo
+                ceros = list(counts.values()).count(0)
+
+                fitness = fitness + ceros
+
+
+
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+largo+20)*largo)))
+
+        matriz.setFitness(propor)
+
 def parallelFitness(mmatriz):
     localr = []
     alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
@@ -209,15 +224,13 @@ def cruzamiento(m1,m2):
     hijo1 = copy.deepcopy(m1)
     hijo2 = copy.deepcopy(m2)
 
-    cruce1 = random.randint(1,len(m1.kmers)-1)
+    cruce1 = random.randint(0,len(m1.indices))
 
 
-
-    for i in range(cruce1,len(m1.kmers)):
-        kmerp = m1.kmers[i]
-        hijo1.setKmer(i,m2.kmers[i])
-        hijo2.setKmer(i,kmerp)
-
+    for i in range(cruce1,len(m1.indices)):
+        pivote = m1.indices[i]
+        hijo1.indices[i] = m2.indices[i]
+        hijo2.indices[i] = pivote
 
     return hijo1,hijo2
 
@@ -275,8 +288,8 @@ if (rank==0):
                 mejorfitness = p.fitness
                 mejorg = copy.deepcopy(p)
         print(c,suma/len(popglobal),len(popglobal))
-        escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
-        escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+        #escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
+        #escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
 
         end_time = time.process_time()
         print("Global Time")
@@ -295,8 +308,6 @@ if (rank!=0):
                 m = generaMatrizInicialNuevo(largo)
                 poplocal.append(m)
         newFitness(poplocal)
-        exit()
-        parallelFitness(poplocal)
         seleccionados = seleccion(poplocal)
 
         poplocal = []
