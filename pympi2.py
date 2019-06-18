@@ -78,10 +78,13 @@ def escribeindividuo(individuo,generacion,archivo):
     f=open(archivo,'a')
     f.write("Motifs "+str(generacion))
     f.write('\n')
-    for i in individuo.kmers:
+    ind = 0
+    for i in individuo.indices:
 
-        f.write(i.adn +" " +str(i.posicioninicial))
+        f.write(datos[ind][i:i+largo] +" " +str(i))
         f.write('\n')
+        ind = ind + 1
+
 
     f.write(str(individuo.fitness))
     f.write('\n')
@@ -117,25 +120,7 @@ def cargaSecuencias(archivo):
     return datos
 
 
-def generaMatrizInicial(largo):
-    kmers = []
-    matriz = matrix(kmers,0,0,"","")
 
-    identificador = 0
-    for i in datos:
-        inicio = random.randint(0,len(i)-largo)
-        palabra = ""
-        for j in range(inicio,inicio+largo):
-
-            palabra = palabra + i[j]
-
-        kmer = Kmer(identificador,palabra,inicio,largo)
-        identificador += 1
-        matriz.kmers.append(kmer)
-
-
-
-    return matriz
 
 
 def generaMatrizInicialNuevo(largo):
@@ -288,8 +273,8 @@ if (rank==0):
                 mejorfitness = p.fitness
                 mejorg = copy.deepcopy(p)
         print(c,suma/len(popglobal),len(popglobal))
-        #escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
-        #escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+        escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
+        escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
 
         end_time = time.process_time()
         print("Global Time")
@@ -301,7 +286,6 @@ if (rank!=0):
 
 
         poplocal = comm.recv(source=0,tag=20)
-        start_time = time.process_time()
         if (len(poplocal)==0):
             poplocal = []
             for i in range(poblacion):
@@ -334,6 +318,3 @@ if (rank!=0):
 
 
         comm.send(poplocal,dest=0,tag=30)
-        end_time = time.process_time()
-        print("Worker Time")
-        print(end_time-start_time,rank)
