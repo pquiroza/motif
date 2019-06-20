@@ -13,7 +13,7 @@ rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
 poblacion = 50000
-largo = 10
+largo = 6
 datos = []
 pop = []
 
@@ -122,7 +122,6 @@ def cargaSecuencias(archivo):
 
 
 
-
 def generaMatrizInicialNuevo(largo):
 
     kmers = []
@@ -167,6 +166,12 @@ def newFitness(mmatriz):
         propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+largo+20)*largo)))
 
         matriz.setFitness(propor)
+def mutacion(m):
+
+    gen = random.randint(0,len(m.indices)-1)
+    nuevogen = random.randint(0,len(datos[gen])-largo)
+    m.indices[gen] = nuevogen
+
 
 def parallelFitness(mmatriz):
     localr = []
@@ -291,6 +296,10 @@ if (rank!=0):
             for i in range(poblacion):
                 m = generaMatrizInicialNuevo(largo)
                 poplocal.append(m)
+
+        for mu in range (int(len(poplocal)*0.05)):
+            amutar = random.randint(0,len(poplocal)-1)
+            mutacion(poplocal[amutar])
         newFitness(poplocal)
         seleccionados = seleccion(poplocal)
 
@@ -309,7 +318,7 @@ if (rank!=0):
         poplocal = hijos
 
 
-        print(rank,len(poplocal))
+        #print(rank,len(poplocal))
 
 
 
