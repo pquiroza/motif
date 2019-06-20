@@ -12,14 +12,14 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 50000
+poblacion = 1000
 largo = 6
 datos = []
 pop = []
 
 
 class Kmer:
-    def __init__(self,idgenome,adn,posicioninicial,largo):
+    def __init__(self,idgenome,adn  ,posicioninicial,largo):
         self.idgenome=idgenome
         self.adn=adn
         self.posicioninicial = posicioninicial
@@ -73,6 +73,21 @@ def escribeFitness(fitness,lkmer,archivo):
     f.write('\n')
     f.close
 
+def guardaGeneracion(archivo,pop):
+
+    f = open(archivo,'w')
+    for p in pop:
+        pal = ""
+        for i in p.indices:
+            pal = pal+str(i)+","
+        f.write(pal)
+        f.write('\n')
+    f.close
+
+
+
+def cargaRespaldo(archivo):
+    print (archivo)
 
 def escribeindividuo(individuo,generacion,archivo):
     f=open(archivo,'a')
@@ -278,6 +293,9 @@ if (rank==0):
                 mejorfitness = p.fitness
                 mejorg = copy.deepcopy(p)
         print(c,suma/len(popglobal),len(popglobal))
+        if (c % 10 == 0):
+            guardaGeneracion("recover/"+archivo+str(largo)+str(len(datos))+"recover.fts",popglobal)
+
         escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
         escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
 
