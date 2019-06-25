@@ -88,6 +88,15 @@ def guardaGeneracion(archivo,pop):
 
 def cargaRespaldo(archivo):
     print (archivo)
+    poprespaldada = []
+    f = open(archivo,'r')
+    for line in f:
+        d = line.split(",")
+        results = d[:len(d)-1]
+        results = [int(i) for i in results]
+        m = nmatrix(results,0,"")
+        poprespaldada.append(m)
+    return poprespaldada
 
 def escribeindividuo(individuo,generacion,archivo):
     f=open(archivo,'a')
@@ -156,7 +165,7 @@ def newFitness(mmatriz):
         palabras = []
         fitness=0
         for k in matriz.indices:
-            #print (k)
+
             palabras.append(datos[ind][k:k+largo])
             ind = ind + 1
 
@@ -266,16 +275,25 @@ def seleccion(popl):
 
 
 datos = cargaSecuencias(archivo)
+carga = int(sys.argv[1])
 if (rank==0):
+    print("carga "+str(carga))
     popglobal = []
+
+
     print("Iniciando Trabajo")
     #cargaSecuencias(archivo)
 
     #for i in range(1,size):
     #    comm.send(datos,dest=i,tag=10)
-    popglobal = []
+
     for c in range(1000):
         start_time = time.process_time()
+        if (carga==1):
+            print("Recuperando archivo")
+            popglobal = cargaRespaldo("recover/PS00010.fa629recover.fts")
+            carga=0
+
         for i in range(1,size):
             comm.send(popglobal,dest=i,tag=20)
         popglobal=[]
@@ -309,6 +327,7 @@ if (rank!=0):
 
 
         poplocal = comm.recv(source=0,tag=20)
+        print(len(poplocal),rank)
         if (len(poplocal)==0):
             poplocal = []
             for i in range(poblacion):
