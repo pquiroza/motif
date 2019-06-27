@@ -12,8 +12,8 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 1000
-largo = 6
+poblacion = 20000
+largo = int(sys.argv[1])
 datos = []
 pop = []
 
@@ -275,7 +275,7 @@ def seleccion(popl):
 
 
 datos = cargaSecuencias(archivo)
-carga = int(sys.argv[1])
+carga = int(sys.argv[2])
 if (rank==0):
     print("carga "+str(carga))
     popglobal = []
@@ -315,7 +315,8 @@ if (rank==0):
             guardaGeneracion("recover/"+archivo+str(largo)+str(len(datos))+"recover.fts",popglobal)
 
         escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
-        escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+        #escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+        escribeFitness(mejorg.fitness,largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-mejorfitness.fts")
 
         end_time = time.process_time()
         print("Global Time")
