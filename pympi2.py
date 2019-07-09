@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 20000
+poblacion = 5000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -287,17 +287,39 @@ if (rank==0):
     #for i in range(1,size):
     #    comm.send(datos,dest=i,tag=10)
 
-    for c in range(1000):
+    for c in range(10000):
         start_time = time.process_time()
         if (carga==1):
             print("Recuperando archivo")
             popglobal = cargaRespaldo("recover/PS00010.fa629recover.fts")
             carga=0
+        if(len(popglobal)>0):
+            print(c)
+            pop1 = []
+            pop2 = []
+            pop3 = []
+            pop4 = []
+            for p in popglobal:
+                destino = random.randint(1,4)
+                if (destino==1):
+                    pop1.append(p)
+                if (destino==2):
+                    pop2.append(p)
+                if (destino==3):
+                    pop3.append(p)
+                if (destino==4):
+                    pop4.append(p)
 
-        for i in range(1,size):
-            comm.send(popglobal,dest=i,tag=20)
+            comm.send(pop1,dest=1,tag=20)
+            comm.send(pop2,dest=2,tag=20)
+            comm.send(pop3,dest=3,tag=20)
+            comm.send(pop4,dest=4,tag=20)
+        else:
+            for i in range(1,size):
+                comm.send(popglobal,dest=i,tag=20)
         popglobal=[]
         for i in range (1,size):
+
             lista = comm.recv(source=i,tag=30)
 
             for l in lista:
@@ -328,16 +350,17 @@ if (rank!=0):
 
 
         poplocal = comm.recv(source=0,tag=20)
-        print(len(poplocal),rank)
+
         if (len(poplocal)==0):
             poplocal = []
             for i in range(poblacion):
                 m = generaMatrizInicialNuevo(largo)
                 poplocal.append(m)
 
-        for mu in range (int(len(poplocal)*0.05)):
+        for mu in range (int(len(poplocal)*0.1)):
             amutar = random.randint(0,len(poplocal)-1)
             mutacion(poplocal[amutar])
+
         newFitness(poplocal)
         seleccionados = seleccion(poplocal)
 
@@ -354,14 +377,5 @@ if (rank!=0):
             hijos.append(hijo2)
         poplocal = []
         poplocal = hijos
-
-
-        #print(rank,len(poplocal))
-
-
-
-
-
-
 
         comm.send(poplocal,dest=0,tag=30)
