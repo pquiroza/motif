@@ -5,14 +5,14 @@ import sys
 import uuid
 import hashlib
 import time
-
+import numpy
 from mpi4py import MPI
 comm = MPI.COMM_WORLD
 size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 5000
+poblacion = 1000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -248,6 +248,14 @@ def cruzamiento(m1,m2):
 
     return hijo1,hijo2
 
+def roulette(popl):
+    ganadores = []
+    for p in popl:
+        compara = random.random()
+        if (p.fitness > compara):
+            ganadores.append(p)
+    return ganadores
+
 def seleccion(popl):
     ganadores = []
     distintos = {}
@@ -274,6 +282,8 @@ def seleccion(popl):
     return ganadores
 
 
+
+
 datos = cargaSecuencias(archivo)
 carga = int(sys.argv[2])
 if (rank==0):
@@ -294,7 +304,6 @@ if (rank==0):
             popglobal = cargaRespaldo("recover/PS00010.fa629recover.fts")
             carga=0
         if(len(popglobal)>0):
-            print(c)
             pop1 = []
             pop2 = []
             pop3 = []
@@ -362,8 +371,9 @@ if (rank!=0):
             mutacion(poplocal[amutar])
 
         newFitness(poplocal)
-        seleccionados = seleccion(poplocal)
-
+        #seleccionados = seleccion(poplocal)
+        seleccionados = roulette(poplocal)
+        print(len(seleccionados),rank)
         poplocal = []
         poplocal = seleccionados
 
