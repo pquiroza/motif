@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 1000
+poblacion = 50000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -159,6 +159,7 @@ def generaMatrizInicialNuevo(largo):
 
 def newFitness(mmatriz):
     localr = []
+    largototal = len(datos)
     alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
     for matriz in mmatriz:
         ind = 0
@@ -178,8 +179,8 @@ def newFitness(mmatriz):
 
                 valor = counts.values()
                 maximo = max(valor)
-                if(maximo == largo):
-                    maximo = maximo + largo
+                if(maximo == largototal):
+                    maximo = maximo + largo*1.1
                 fitness = fitness + maximo
                 ceros = list(counts.values()).count(0)
 
@@ -187,7 +188,7 @@ def newFitness(mmatriz):
 
 
 
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+largo+20)*largo)))
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos))*largo*1.1)))
 
         matriz.setFitness(propor)
 def mutacion(m):
