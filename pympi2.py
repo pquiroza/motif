@@ -188,7 +188,7 @@ def newFitness(mmatriz):
 
 
 
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos))*largo*1.1)))
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+(len(datos)-1)+largo)*largo)))
 
         matriz.setFitness(propor)
 def mutacion(m):
