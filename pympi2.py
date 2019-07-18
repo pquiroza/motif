@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 50000
+poblacion = 5000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -180,7 +180,8 @@ def newFitness(mmatriz):
                 valor = counts.values()
                 maximo = max(valor)
                 if(maximo == largototal):
-                    maximo = maximo + largo*1.1
+                    print("FILA",i)
+                    maximo = maximo + largo
                 fitness = fitness + maximo
                 ceros = list(counts.values()).count(0)
 
@@ -345,9 +346,10 @@ if (rank==0):
         print(c,suma/len(popglobal),len(popglobal))
         if (c % 10 == 0):
             guardaGeneracion("recover/"+archivo+str(largo)+str(len(datos))+"recover.fts",popglobal)
+            escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
 
         escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
-        #escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+        escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
         escribeFitness(mejorg.fitness,largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-mejorfitness.fts")
 
         end_time = time.process_time()
