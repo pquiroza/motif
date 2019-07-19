@@ -12,7 +12,11 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
+<<<<<<< HEAD
 poblacion = 10000
+=======
+poblacion = 5000
+>>>>>>> c146807af1981621991d014dfa87de749b06e24e
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -159,7 +163,11 @@ def generaMatrizInicialNuevo(largo):
 
 def newFitness(mmatriz):
     localr = []
+<<<<<<< HEAD
     largodatos = len(datos)
+=======
+    largototal = len(datos)
+>>>>>>> c146807af1981621991d014dfa87de749b06e24e
     alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
     for matriz in mmatriz:
         ind = 0
@@ -180,12 +188,18 @@ def newFitness(mmatriz):
 
                 valor = counts.values()
                 maximo = max(valor)
+<<<<<<< HEAD
 
                 if(maximo == largodatos):
                     print("FILA",i)
                     maximo = maximo * 1.1
 
                     print("FILA ",contador)
+=======
+                if(maximo == largototal):
+                    print("FILA",i)
+                    maximo = maximo + largo
+>>>>>>> c146807af1981621991d014dfa87de749b06e24e
                 fitness = fitness + maximo
                 ceros = list(counts.values()).count(0)
 
@@ -193,7 +207,11 @@ def newFitness(mmatriz):
 
 
 
+<<<<<<< HEAD
         propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)*1.1*largo)))
+=======
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+(len(datos)-1)+largo)*largo)))
+>>>>>>> c146807af1981621991d014dfa87de749b06e24e
 
         matriz.setFitness(propor)
 def mutacion(m):
@@ -350,9 +368,10 @@ if (rank==0):
         print(c,suma/len(popglobal),len(popglobal))
         if (c % 10 == 0):
             guardaGeneracion("recover/"+archivo+str(largo)+str(len(datos))+"recover.fts",popglobal)
+            escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
 
         escribeFitness(suma/len(popglobal),largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-fitnesspromedio.fts")
-        #escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
+        escribeindividuo(mejorg,c,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-generacion.fts")
         escribeFitness(mejorg.fitness,largo,"results/"+archivo+str(largo)+"-"+str(len(datos))+"-mejorfitness.fts")
 
         end_time = time.process_time()
