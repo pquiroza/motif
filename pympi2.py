@@ -12,7 +12,7 @@ size = comm.Get_size()
 rank = comm.Get_rank()
 
 archivo = "PS00010.fa"
-poblacion = 1000
+poblacion = 10000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -159,6 +159,7 @@ def generaMatrizInicialNuevo(largo):
 
 def newFitness(mmatriz):
     localr = []
+    largodatos = len(datos)
     alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
     for matriz in mmatriz:
         ind = 0
@@ -168,8 +169,9 @@ def newFitness(mmatriz):
 
             palabras.append(datos[ind][k:k+largo])
             ind = ind + 1
-
+        contador = 1
         for i in range(largo):
+
                 counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
 
                 for l in palabras:
@@ -178,8 +180,12 @@ def newFitness(mmatriz):
 
                 valor = counts.values()
                 maximo = max(valor)
-                if(maximo == largo):
-                    maximo = maximo + largo
+
+                if(maximo == largodatos):
+                    print("FILA",i)
+                    maximo = maximo * 1.1
+
+                    print("FILA ",contador)
                 fitness = fitness + maximo
                 ceros = list(counts.values()).count(0)
 
@@ -187,7 +193,7 @@ def newFitness(mmatriz):
 
 
 
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal((len(datos)+largo+20)*largo)))
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)*1.1*largo)))
 
         matriz.setFitness(propor)
 def mutacion(m):
@@ -373,7 +379,7 @@ if (rank!=0):
         newFitness(poplocal)
         #seleccionados = seleccion(poplocal)
         seleccionados = roulette(poplocal)
-        print(len(seleccionados),rank)
+
         poplocal = []
         poplocal = seleccionados
 
