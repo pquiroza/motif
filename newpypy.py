@@ -5,11 +5,10 @@ import sys
 import uuid
 import hashlib
 import time
-import numpy
 
 
 archivo = "PS00010.fa"
-poblacion = 2000
+poblacion = 1000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -97,7 +96,7 @@ def cargaRespaldo(archivo):
     return poprespaldada
 
 def escribeindividuo(individuo,generacion,archivo):
-    f=open(archivo,'a')
+    f=open(archivo,'w')
     f.write("Motifs "+str(generacion))
     f.write('\n')
     ind = 0
@@ -181,10 +180,9 @@ def newFitness(mmatriz):
                 maximo = max(valor)
 
                 if(maximo == largodatos):
-                    print("FILA",i)
-                    maximo = maximo * 1.1
 
-                    print("FILA ",contador)
+                    maximo = maximo + largo
+
                 fitness = fitness + maximo
                 ceros = list(counts.values()).count(0)
 
@@ -192,17 +190,17 @@ def newFitness(mmatriz):
 
 
 
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)*1.1*largo)))
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)+(len(datos)-1)+largo)*largo))
 
         matriz.setFitness(propor)
 
 
 
 def mutacion(m):
-
-    gen = random.randint(0,len(m.indices)-1)
-    nuevogen = random.randint(0,len(datos[gen])-largo)
-    m.indices[gen] = nuevogen
+    for i in range(len(datos)):
+        gen = random.randint(0,len(m.indices)-1)
+        nuevogen = random.randint(0,len(datos[gen])-largo)
+        m.indices[gen] = nuevogen
 
 
 
@@ -238,9 +236,11 @@ print("Iniciando Trabajo")
 for i in range(poblacion):
     m = generaMatrizInicialNuevo(largo)
     poplocal.append(m)
-for c in range(10000):
+mejortotal = None
+fitnessglobal = 0
+for c in range(1000000):
 
-    start_time = time.process_time()
+    #start_time = time.process_time()
     if (carga==1):
         print("Recuperando archivo")
         poplocal = cargaRespaldo("recover/PS00010.fa629recover.fts")
@@ -274,9 +274,13 @@ for c in range(10000):
         if (p.fitness > mejorfitness):
             mejorfitness = p.fitness
             mejorg = copy.deepcopy(p)
+    if (mejorg.fitness>fitnessglobal):
+        fitnessglobal = mejorg.fitness
+        mejorglobal = copy.deepcopy(mejorg)
+        escribeindividuo(mejorglobal,c,"results/PS00010individuo.fts")
     print(c,suma/len(poplocal),len(poplocal))
     escribeFitness(mejorg.fitness,largo,"results/PS00010mejor.fts")
-    escribeindividuo(mejorg,c,"results/PS00010individuo.fts")
-    end_time = time.process_time()
+    #escribeindividuo(mejorg,c,"results/PS00010individuo.fts")
+    #end_time = time.process_time()
     #print("Global Time")
     #print(end_time-start_time)
