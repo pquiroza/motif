@@ -8,7 +8,7 @@ import time
 
 
 archivo = "PS00010.fa"
-poblacion = 1000
+poblacion = 500
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -264,8 +264,19 @@ for c in range(1000000):
         hijo1,hijo2 = cruzamiento(poplocal[cruza1],poplocal[cruza2])
         hijos.append(hijo1)
         hijos.append(hijo2)
+
     poplocal = []
     poplocal = hijos
+    muta = random.random()
+
+    if (muta>0.95):
+        print(muta)
+        for mu in range (int(len(poplocal)*0.1)):
+            amutar = random.randint(0,len(poplocal)-1)
+            mutacion(poplocal[amutar])
+
+
+
     suma = 0
     mejor = None
     mejorfitness = 0
