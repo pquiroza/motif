@@ -247,9 +247,7 @@ for c in range(1000000):
         carga=0
 
 
-    for mu in range (int(len(poplocal)*0.1)):
-        amutar = random.randint(0,len(poplocal)-1)
-        mutacion(poplocal[amutar])
+
 
     newFitness(poplocal)
     seleccionados = roulette(poplocal)
