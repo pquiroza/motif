@@ -5,11 +5,10 @@ import sys
 import uuid
 import hashlib
 import time
-import math
 
 
 archivo = sys.argv[3]
-poblacion = 500000
+poblacion = 100000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -82,21 +81,7 @@ def guardaGeneracion(archivo,pop):
         f.write('\n')
     f.close
 
-def escribeindividuo(individuo,generacion,archivo):
-    f=open(archivo,'w')
-    f.write("Motifs "+str(generacion))
-    f.write('\n')
-    ind = 0
-    for i in individuo.indices:
 
-        f.write(datos[ind][i:i+largo] +" " +str(i))
-        f.write('\n')
-        ind = ind + 1
-
-
-    f.write(str(individuo.fitness))
-    f.write('\n')
-    f.close
 
 def cargaRespaldo(archivo):
     print (archivo)
@@ -125,16 +110,12 @@ def escribeindividuo(individuo,generacion,archivo):
     f.write(str(individuo.fitness))
     f.write('\n')
     f.close
-
-def cargaIndividuo(archivo):
-    datos = []
-    f = open(archivo,'r')
-    for line in f:
-        valor = int(line)
-        datos.append(valor)
-
-    matriz = nmatrix(datos,0,"")
-    return matriz
+def escribeArray(individuo,archivo):
+    f=open(archivo,'w')
+    for i in individuo.indices:
+        f.write(str(i))
+        f.write('\n')
+    f.close
 
 def cargaSecuencias(archivo):
 
@@ -179,37 +160,6 @@ def generaMatrizInicialNuevo(largo):
     matriz.setFitness(0)
     return matriz
 
-
-def AnnealingFitness(matriz):
-    largodatos = len(datos)
-    alfabeto=["A","C","E","D","G","F","I","H","K","M","L","N","Q","P","S","R","T","W","V","Y","X"]
-    ind = 0
-    palabras = []
-    fitness = 0
-    for k in matriz.indices:
-        palabras.append(datos[ind][k:k+largo])
-        ind = ind + 1
-    contador = 1
-    for i in range(largo):
-        counts = {"A":0,"C":0,"D":0,"E":0,"F":0,"G":0,"H":0,"I":0,"K":0,"L":0,"M":0,"N":0,"P":0,"Q":0,"R":0,"S":0,"T":0,"V":0,"W":0,"Y":0,"X":0}
-        for l in palabras:
-            counts[l[i]]+=1
-        valor = counts.values()
-        maximo = max(valor)
-        if(maximo == largodatos):
-
-            maximo = maximo + largo
-
-        fitness = fitness + maximo
-        ceros = list(counts.values()).count(0)
-        fitness = fitness + ceros
-
-    propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)+20+largo)*largo))
-
-    matriz.setFitness(propor)
-
-
-
 def newFitness(mmatriz):
     localr = []
     largodatos = len(datos)
@@ -250,21 +200,13 @@ def newFitness(mmatriz):
 
 
 
-def mutacion2(m):
-    vecino = copy.deepcopy(m)
-    for i in range(len(datos)):
-        gen = random.randint(0,len(vecino.indices)-1)
-        nuevogen = random.randint(0,len(datos[gen])-largo)
-        vecino.indices[gen] = nuevogen
-    return vecino
-
 def mutacion(m):
-    vecino = copy.deepcopy(m)
-    gen = random.randint(0,len(vecino.indices)-1)
-    nuevogen = random.randint(0,len(datos[gen])-largo)
-    vecino.indices[gen] = nuevogen
+    for i in range(len(datos)):
+        gen = random.randint(0,len(m.indices)-1)
+        nuevogen = random.randint(0,len(datos[gen])-largo)
+        m.indices[gen] = nuevogen
 
-    return vecino
+
 
 def cruzamiento(m1,m2):
 
@@ -295,40 +237,64 @@ datos = cargaSecuencias(archivo)
 carga = int(sys.argv[2])
 poplocal = []
 print("Iniciando Trabajo")
-#individuo = generaMatrizInicialNuevo(largo)
-individuo = cargaIndividuo("results/PS00010.faarray6-72.fts")
-AnnealingFitness(individuo)
-print("inicio",individuo.fitness)
-print(individuo.indices)
-tinicial = 1
-valor = 0
-fitnessmejor = 0
-mejorglobal = None
-while(tinicial>0.00005):
+for i in range(poblacion):
+    m = generaMatrizInicialNuevo(largo)
+    poplocal.append(m)
+mejortotal = None
+fitnessglobal = 0
+for c in range(100000):
 
-    for i in range(10000):
-        #print(tinicial,i,individuo.fitness)
-        vecino = mutacion(individuo)
-        AnnealingFitness(vecino)
-        #print (vecino.fitness)
-        resta = vecino.fitness - individuo.fitness
-        #
-        if (individuo.fitness > fitnessmejor):
-            fitnessmejor = individuo.fitness
-            mejorglobal = copy.deepcopy(individuo)
-            escribeindividuo(mejorglobal,tinicial,"results/annealing"+archivo+"individuo"+str(largo)+"-"+str(len(datos))+".fts")
+    #start_time = time.process_time()
+    if (carga==1):
+        print("Recuperando archivo")
+        poplocal = cargaRespaldo("recover/PS00010.fa629recover.fts")
+        carga=0
 
-        if (resta>0):
-            individuo = copy.deepcopy(vecino)
 
-        else:
-            r=random.random()
-            valor = math.exp((decimal.Decimal(-resta)/decimal.Decimal(tinicial)))
 
-            #print(r,valor)
-            if(r>valor):
-                #print("PEOR")
-                individuo = copy.deepcopy(vecino)
-    print(individuo.fitness)
-    escribeFitness(individuo.fitness,largo,"results/annealing"+archivo+"mejor"+str(largo)+".fts")
-    tinicial = tinicial*0.99
+
+    newFitness(poplocal)
+    seleccionados = roulette(poplocal)
+
+    poplocal = []
+    poplocal = seleccionados
+    hijos = []
+    for i in range(poblacion):
+        cruza1 = random.randint(0,len(poplocal)-1)
+        cruza2 = random.randint(0,len(poplocal)-1)
+
+        hijo1,hijo2 = cruzamiento(poplocal[cruza1],poplocal[cruza2])
+        hijos.append(hijo1)
+        hijos.append(hijo2)
+
+    poplocal = []
+    poplocal = hijos
+    muta = random.random()
+
+    if (muta>0.80):
+        print(muta)
+        for mu in range (int(len(poplocal)*0.1)):
+            amutar = random.randint(0,len(poplocal)-1)
+            mutacion(poplocal[amutar])
+
+
+
+    suma = 0
+    mejor = None
+    mejorfitness = 0
+    for p in poplocal:
+        suma = suma + p.fitness
+        if (p.fitness > mejorfitness):
+            mejorfitness = p.fitness
+            mejorg = copy.deepcopy(p)
+    if (mejorg.fitness>fitnessglobal):
+        fitnessglobal = mejorg.fitness
+        mejorglobal = copy.deepcopy(mejorg)
+        escribeindividuo(mejorglobal,c,"results/"+archivo+"individuo"+str(largo)+"-"+str(len(datos))+".fts")
+        escribeArray(mejorglobal,"results/"+archivo+"array"+str(largo)+"-"+str(len(datos))+".fts")
+    print(c,suma/len(poplocal),len(poplocal))
+    escribeFitness(mejorg.fitness,largo,"results/"+archivo+"mejor"+str(largo)+"-"+str(len(datos))+".fts")
+    #escribeindividuo(mejorg,c,"results/PS00010individuo.fts")
+    #end_time = time.process_time()
+    #print("Global Time")
+    #print(end_time-start_time)

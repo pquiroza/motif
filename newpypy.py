@@ -7,8 +7,8 @@ import hashlib
 import time
 
 
-archivo = "PS00010.fa"
-poblacion = 500
+archivo = sys.argv[3]
+poblacion = 500000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -110,7 +110,12 @@ def escribeindividuo(individuo,generacion,archivo):
     f.write(str(individuo.fitness))
     f.write('\n')
     f.close
-
+def escribeArray(individuo,archivo):
+    f=open(archivo,'w')
+    for i in individuo.indices:
+        f.write(str(i))
+        f.write('\n')
+    f.close
 
 def cargaSecuencias(archivo):
 
@@ -185,12 +190,11 @@ def newFitness(mmatriz):
 
                 fitness = fitness + maximo
                 ceros = list(counts.values()).count(0)
-
                 fitness = fitness + ceros
 
 
 
-        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)+(len(datos)-1)+largo)*largo))
+        propor = decimal.Decimal(decimal.Decimal(fitness)/(decimal.Decimal(len(datos)+20+largo)*largo))
 
         matriz.setFitness(propor)
 
@@ -238,7 +242,7 @@ for i in range(poblacion):
     poplocal.append(m)
 mejortotal = None
 fitnessglobal = 0
-for c in range(1000000):
+for c in range(100000):
 
     #start_time = time.process_time()
     if (carga==1):
@@ -267,7 +271,7 @@ for c in range(1000000):
     poplocal = hijos
     muta = random.random()
 
-    if (muta>0.95):
+    if (muta>0.80):
         print(muta)
         for mu in range (int(len(poplocal)*0.1)):
             amutar = random.randint(0,len(poplocal)-1)
@@ -286,9 +290,10 @@ for c in range(1000000):
     if (mejorg.fitness>fitnessglobal):
         fitnessglobal = mejorg.fitness
         mejorglobal = copy.deepcopy(mejorg)
-        escribeindividuo(mejorglobal,c,"results/PS00010individuo.fts")
+        escribeindividuo(mejorglobal,c,"results/"+archivo+"individuo"+str(largo)+"-"+str(len(datos))+".fts")
+        escribeArray(mejorglobal,"results/"+archivo+"array"+str(largo)+"-"+str(len(datos))+".fts")
     print(c,suma/len(poplocal),len(poplocal))
-    escribeFitness(mejorg.fitness,largo,"results/PS00010mejor.fts")
+    escribeFitness(mejorg.fitness,largo,"results/"+archivo+"mejor"+str(largo)+"-"+str(len(datos))+".fts")
     #escribeindividuo(mejorg,c,"results/PS00010individuo.fts")
     #end_time = time.process_time()
     #print("Global Time")
