@@ -139,16 +139,13 @@ public static ArrayList<Matriz> roulette(ArrayList<Matriz> pop){
 }
 
 public static ArrayList<Matriz> cruzamiento(Matriz m1,Matriz m2){
+  ArrayList<Matriz> hijos = new ArrayList<Matriz>();
   int[] temporal = new int[datos.size()];
   int[] temporal2 = new int[datos.size()];
 
   Random r = new Random();
   int indice = r.nextInt(datos.size());
 
-for (int i=0;i<m1.indices.length;i++){
-  System.out.println(m1.indices[i]+" "+m2.indices[i]);
-}
-System.out.println("-----------------------");
 
   for(int i=0;i<indice;i++){
     temporal[i] = m1.indices[i];
@@ -158,10 +155,12 @@ System.out.println("-----------------------");
     temporal[l]=m2.indices[l];
     temporal2[l] = m1.indices[l];
   }
-for (int i=0;i<temporal.length;i++){
-  System.out.println(temporal[i]+" "+temporal2[i]);
-}
-return null;
+
+m1.indices = temporal;
+m2.indices = temporal2;
+hijos.add(m1);
+hijos.add(m2);
+return hijos;
 
 }
 
@@ -174,6 +173,7 @@ return null;
 
 
     ArrayList<Matriz> pop = new ArrayList<Matriz>();
+      ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
     System.out.println("Java");
     cargaDatos("../PS00821.fa");
 
@@ -184,14 +184,25 @@ return null;
 
     pop.add(m);
   }
+for (int c=0;c<10000;c++){
+
+for (int i=0;i<pop.size();i++){
+  pop.get(i).fitness = getFitness(pop.get(i));
+}
+
 
 pop = roulette(pop);
-for (int i=0;i<pop.size();i++){
+for (int i=0;i<poblacion;i++){
   Random r = new Random();
   int indice = r.nextInt(pop.size());
   int indice2 = r.nextInt(pop.size());
 
-  cruzamiento(pop.get(indice),pop.get(indice2));
+  ArrayList<Matriz> hijos = cruzamiento(pop.get(indice),pop.get(indice2));
+
+  for(int h=0;h<hijos.size();h++){
+    pop2.add(hijos.get(h));
+  }
+  pop = pop2;
 
 
 }
@@ -201,4 +212,5 @@ System.out.println(pop.size());
 
 
   }
+}
 }
