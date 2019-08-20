@@ -19,11 +19,14 @@ public class GeneticMotif implements Cloneable{
 
 
 
-  static ArrayList<String> datos = new ArrayList<String>();
+static ArrayList<String> datos = new ArrayList<String>();
+static ArrayList<Matriz> pop = new ArrayList<Matriz>();
+static ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
+
 
     static String linea ="";
     public static int largo = 6;
-    public static int poblacion = 10000;
+    public static int poblacion = 1000000;
   public static void cargaDatos(String filename){
     try {
       Stream<String> lines = Files.lines(Paths.get(filename));
@@ -66,7 +69,7 @@ public class GeneticMotif implements Cloneable{
   }
 
 
-  public static double getFitness(Matriz m){
+  public static void getFitness(Matriz m){
     String[] palabras = new String[datos.size()];
     int parcial = 0;
 
@@ -118,23 +121,25 @@ public class GeneticMotif implements Cloneable{
 
   }
   double propor = (double) parcial / ((datos.size()+20+largo)*largo);
-  return propor;
+  m.fitness=propor;
+  //System.out.println(m.fitness);
+  //return propor;
   }
 
 
-public static ArrayList<Matriz> roulette(ArrayList<Matriz> pop){
-  ArrayList<Matriz> ganadores = new ArrayList<Matriz>();
+public static void roulette(Matriz m){
 
-  for (int i=0;i<pop.size();i++){
+
     Random r = new Random();
     double compara = r.nextDouble();
-    if (pop.get(i).fitness>compara){
-      ganadores.add(pop.get(i));
+    if (m.fitness>compara){
+
+      pop2.add(m);
     }
 
-  }
-  System.out.println("ganadores "+ganadores.size());
-  return ganadores;
+
+  //System.out.println("ganadores "+pop.size());
+  //return ganadores;
 
 }
 
@@ -171,29 +176,35 @@ return hijos;
 
 
 
+    double mejorf = 0;
 
 
      double sumatotal = 0;
-    ArrayList<Matriz> pop = new ArrayList<Matriz>();
-      ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
+
     System.out.println("Java");
     cargaDatos("../PS00010.fa");
 
 
     for (int i=0;i<poblacion;i++){
     Matriz m = generaInicial();
-    m.fitness = getFitness(m);
+  //  m.fitness = getFitness(m);
 
     pop.add(m);
   }
 for (int c=0;c<10000;c++){
+mejorf =0;
+pop.parallelStream().forEach(m -> getFitness(m));
 
-for (int i=0;i<pop.size();i++){
-  pop.get(i).fitness = getFitness(pop.get(i));
+
+pop.parallelStream().forEach(m-> roulette(m));
+
+pop.clear();
+for(int l=0;l<pop2.size();l++){
+Matriz mc = (Matriz) pop2.get(l).clone();
+pop.add(mc);
 }
+pop2.clear();
 
-
-pop = roulette(pop);
 for (int i=0;i<poblacion;i++){
   Random r = new Random();
   int indice = r.nextInt(pop.size());
@@ -212,22 +223,25 @@ for (int i=0;i<poblacion;i++){
 pop.clear();
 for(int l=0;l<pop2.size();l++){
 Matriz mc = (Matriz) pop2.get(l).clone();
-mc.fitness = getFitness(mc);
 pop.add(mc);
 }
 
 
+pop.parallelStream().forEach(m -> getFitness(m));
 
 
 for (int i=0;i<pop.size();i++){
-  pop.get(i).fitness = getFitness(pop.get(i));
+
   sumatotal = sumatotal + pop.get(i).fitness;
+  if (pop.get(i).fitness > mejorf){
+    mejorf = pop.get(i).fitness;
+  }
 }
 
 
 pop2.clear();
 //System.out.println(pop.size()+" "+sumatotal);
-System.out.println("PROMEDIO "+(double) sumatotal/pop.size());
+System.out.println("PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
 sumatotal=0;
 
 

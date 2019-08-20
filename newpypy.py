@@ -8,7 +8,7 @@ import time
 
 
 archivo = sys.argv[3]
-poblacion = 500000
+poblacion = 10000
 largo = int(sys.argv[1])
 datos = []
 pop = []
@@ -118,7 +118,6 @@ def escribeArray(individuo,archivo):
     f.close
 
 def cargaSecuencias(archivo):
-
     datos = []
     f = open(archivo,'r')
     secuencia = ""
