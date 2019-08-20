@@ -12,7 +12,7 @@ import java.util.Map;
 import java.util.Iterator;
 import java.util.Collections;
 
-public class GeneticMotif {
+public class GeneticMotif implements Cloneable{
 
 
 
@@ -23,7 +23,7 @@ public class GeneticMotif {
 
     static String linea ="";
     public static int largo = 6;
-    public static int poblacion = 100000;
+    public static int poblacion = 10000;
   public static void cargaDatos(String filename){
     try {
       Stream<String> lines = Files.lines(Paths.get(filename));
@@ -164,18 +164,20 @@ return hijos;
 
 }
 
-  public static void main(String args[]){
+
+
+  public static void main(String args[]) throws CloneNotSupportedException{
 
 
 
 
 
 
-
+     double sumatotal = 0;
     ArrayList<Matriz> pop = new ArrayList<Matriz>();
       ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
     System.out.println("Java");
-    cargaDatos("../PS00821.fa");
+    cargaDatos("../PS00010.fa");
 
 
     for (int i=0;i<poblacion;i++){
@@ -202,13 +204,31 @@ for (int i=0;i<poblacion;i++){
   for(int h=0;h<hijos.size();h++){
     pop2.add(hijos.get(h));
   }
-  pop = pop2;
+
 
 
 }
 
-System.out.println(pop.size());
+pop.clear();
+for(int l=0;l<pop2.size();l++){
+Matriz mc = (Matriz) pop2.get(l).clone();
+mc.fitness = getFitness(mc);
+pop.add(mc);
+}
 
+
+
+
+for (int i=0;i<pop.size();i++){
+  pop.get(i).fitness = getFitness(pop.get(i));
+  sumatotal = sumatotal + pop.get(i).fitness;
+}
+
+
+pop2.clear();
+//System.out.println(pop.size()+" "+sumatotal);
+System.out.println("PROMEDIO "+(double) sumatotal/pop.size());
+sumatotal=0;
 
 
   }
