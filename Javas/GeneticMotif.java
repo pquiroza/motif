@@ -1,5 +1,7 @@
 package motif.classes;
 import java.io.BufferedReader;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -26,7 +28,7 @@ static ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
 
     static String linea ="";
     public static int largo = 6;
-    public static int poblacion = 1000000;
+    public static int poblacion = 500000;
   public static void cargaDatos(String filename){
     try {
       Stream<String> lines = Files.lines(Paths.get(filename));
@@ -54,6 +56,23 @@ static ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
     }
   }
 
+public static void escribeFitness(double fitness,String archivo) throws IOException {
+  BufferedWriter writer = new BufferedWriter(new FileWriter(archivo,true));
+  writer.write(fitness+"");
+  writer.write("\n");
+  writer.close();
+
+}
+
+public static void escribeIndividuo(Matriz m, String archivo) throws IOException{
+  BufferedWriter writer = new BufferedWriter(new FileWriter(archivo));
+  for(int i=0;i<m.indices.length;i++){
+    writer.write(datos.get(i).substring(m.indices[i],m.indices[i]+largo));
+    writer.write("\n");
+  }
+  writer.write(m.fitness+"");
+writer.close();
+}
 
 
   public static Matriz generaInicial(){
@@ -178,7 +197,7 @@ return hijos;
 
     double mejorf = 0;
 
-
+    Matriz mejori = null;
      double sumatotal = 0;
 
     System.out.println("Java");
@@ -234,12 +253,24 @@ for (int i=0;i<pop.size();i++){
 
   sumatotal = sumatotal + pop.get(i).fitness;
   if (pop.get(i).fitness > mejorf){
+    mejori = pop.get(i);
     mejorf = pop.get(i).fitness;
+
+
   }
+
 }
 
 
 pop2.clear();
+try {
+escribeIndividuo(mejori,"prueba.txt");
+escribeFitness(mejori.fitness,"fitness.txt");
+
+}
+catch(IOException e){
+System.out.println("error");
+}
 //System.out.println(pop.size()+" "+sumatotal);
 System.out.println("PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
 sumatotal=0;
