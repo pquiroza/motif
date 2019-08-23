@@ -27,8 +27,8 @@ static ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
 
 
     static String linea ="";
-    public static int largo = 6;
-    public static int poblacion = 500000;
+    public static int largo = 10;
+    public static int poblacion = 1000000;
   public static void cargaDatos(String filename){
     try {
       Stream<String> lines = Files.lines(Paths.get(filename));
@@ -196,12 +196,13 @@ return hijos;
 
 
     double mejorf = 0;
-
-    Matriz mejori = null;
+    int[] psa =new int[datos.size()];
+    Matriz mejori = new Matriz(psa,0);
      double sumatotal = 0;
 
     System.out.println("Java");
-    cargaDatos("../PS00010.fa");
+    String archivodatos = "PS00047.fa";
+    cargaDatos("../"+archivodatos);
 
 
     for (int i=0;i<poblacion;i++){
@@ -210,9 +211,10 @@ return hijos;
 
     pop.add(m);
   }
+  pop.parallelStream().forEach(m -> getFitness(m));
 for (int c=0;c<10000;c++){
-mejorf =0;
-pop.parallelStream().forEach(m -> getFitness(m));
+  mejorf=0;
+
 
 
 pop.parallelStream().forEach(m-> roulette(m));
@@ -253,9 +255,23 @@ for (int i=0;i<pop.size();i++){
 
   sumatotal = sumatotal + pop.get(i).fitness;
   if (pop.get(i).fitness > mejorf){
-    mejori = pop.get(i);
     mejorf = pop.get(i).fitness;
 
+
+  }
+
+  if(pop.get(i).fitness>mejori.fitness){
+    mejori = pop.get(i);
+    try {
+    escribeIndividuo(mejori,"Results"+archivodatos+" "+largo+".txt");
+    if(mejori.fitness==1.0){
+      System.out.println("Perfect Motif Find");
+      System.exit(0);
+    }
+  }
+  catch(IOException e){
+  System.out.println("error");
+  }
 
   }
 
@@ -264,15 +280,14 @@ for (int i=0;i<pop.size();i++){
 
 pop2.clear();
 try {
-escribeIndividuo(mejori,"prueba.txt");
-escribeFitness(mejori.fitness,"fitness.txt");
+escribeFitness(mejorf,"Fitness"+archivodatos+" "+largo+".txt");
 
 }
 catch(IOException e){
 System.out.println("error");
 }
 //System.out.println(pop.size()+" "+sumatotal);
-System.out.println("PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
+System.out.println("CICLO "+c+" PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
 sumatotal=0;
 
 
