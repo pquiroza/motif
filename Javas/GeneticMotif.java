@@ -83,19 +83,25 @@ writer.close();
       indices[i] = indice;
 
     }
-    Matriz m = new Matriz(indices,0);
+    Matriz m = new Matriz(indices,0,0);
     return m;
   }
 
 
   public static void getFitness(Matriz m){
+    if(m==null){
+      System.out.println("ES NULL");
+      System.exit(0);
+    }
     String[] palabras = new String[datos.size()];
     int parcial = 0;
 
+    //System.out.println(m.indices.length+" "+m.state);
+    for (int i =0;i<datos.size();i++){
 
-    for (int i =0;i<m.indices.length;i++){
       String pal = datos.get(i).substring(m.indices[i],m.indices[i]+largo);
       palabras[i] = pal;
+
     }
 
   for (int i=0;i<largo;i++){
@@ -152,8 +158,8 @@ public static void roulette(Matriz m){
     Random r = new Random();
     double compara = r.nextDouble();
     if (m.fitness>compara){
-
-      pop2.add(m);
+      m.state = 1;
+    //  pop2.add(m);
     }
 
 
@@ -162,29 +168,33 @@ public static void roulette(Matriz m){
 
 }
 
-public static ArrayList<Matriz> cruzamiento(Matriz m1,Matriz m2){
-  ArrayList<Matriz> hijos = new ArrayList<Matriz>();
+public static void backto(Matriz m){
+    m.state=0;
+}
+
+public static void cruzamiento(Matriz m1){
   int[] temporal = new int[datos.size()];
   int[] temporal2 = new int[datos.size()];
 
   Random r = new Random();
+  int indi = r.nextInt(pop.size());
   int indice = r.nextInt(datos.size());
 
 
   for(int i=0;i<indice;i++){
     temporal[i] = m1.indices[i];
-    temporal2[i] = m2.indices[i];
+    temporal2[i] = pop.get(indi).indices[i];
   }
   for (int l=indice;l<datos.size();l++){
-    temporal[l]=m2.indices[l];
+    temporal[l]=pop.get(indi).indices[l];
     temporal2[l] = m1.indices[l];
   }
 
-m1.indices = temporal;
-m2.indices = temporal2;
-hijos.add(m1);
-hijos.add(m2);
-return hijos;
+Matriz n1 = new Matriz(temporal,0,2);
+Matriz n2 = new Matriz(temporal2,0,2);
+
+pop2.add(n1);
+pop2.add(n2);
 
 }
 
@@ -197,58 +207,76 @@ return hijos;
 
     double mejorf = 0;
     int[] psa =new int[datos.size()];
-    Matriz mejori = new Matriz(psa,0);
+    Matriz mejori = new Matriz(psa,0,0);
      double sumatotal = 0;
 
     System.out.println("Java");
-    String archivodatos = "PS00047.fa";
+    String archivodatos = "PS00010.fa";
     cargaDatos("../"+archivodatos);
 
 
     for (int i=0;i<poblacion;i++){
     Matriz m = generaInicial();
-  //  m.fitness = getFitness(m);
+    if (m==null){
+      System.out.println("LA CAGO EL INICIAL");
+      System.exit(0);
+    }
+
 
     pop.add(m);
   }
-  pop.parallelStream().forEach(m -> getFitness(m));
+  pop.stream().forEach(m -> getFitness(m));
 for (int c=0;c<10000;c++){
   mejorf=0;
 
 
-
 pop.parallelStream().forEach(m-> roulette(m));
+pop.removeIf(m-> m.state==0);
 
+
+
+
+/*
 pop.clear();
 for(int l=0;l<pop2.size();l++){
 Matriz mc = (Matriz) pop2.get(l).clone();
 pop.add(mc);
 }
 pop2.clear();
+*/
 
-for (int i=0;i<poblacion;i++){
-  Random r = new Random();
-  int indice = r.nextInt(pop.size());
-  int indice2 = r.nextInt(pop.size());
+while(pop2.size()<poblacion){
+pop.parallelStream().forEach(m -> cruzamiento(m));
+}
 
-  ArrayList<Matriz> hijos = cruzamiento(pop.get(indice),pop.get(indice2));
 
-  for(int h=0;h<hijos.size();h++){
-    pop2.add(hijos.get(h));
+
+
+
+
+int contanull = 0;
+for(int e=0;e<pop2.size();e++){
+  if(pop2.get(e)!=null){
+    contanull++;
+    pop.add(pop2.get(e));
   }
-
-
-
 }
 
-pop.clear();
-for(int l=0;l<pop2.size();l++){
-Matriz mc = (Matriz) pop2.get(l).clone();
-pop.add(mc);
-}
+
+
+
+
+
+pop.removeIf(m-> m.state==1);
+pop2.clear();
+
+
+
 
 
 pop.parallelStream().forEach(m -> getFitness(m));
+
+
 
 
 for (int i=0;i<pop.size();i++){
@@ -287,6 +315,7 @@ catch(IOException e){
 System.out.println("error");
 }
 //System.out.println(pop.size()+" "+sumatotal);
+pop.parallelStream().forEach(m -> backto(m) );
 System.out.println("CICLO "+c+" PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
 sumatotal=0;
 
