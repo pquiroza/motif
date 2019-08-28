@@ -27,8 +27,8 @@ static ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
 
 
     static String linea ="";
-    public static int largo = 10;
-    public static int poblacion = 1000000;
+    public static int largo = 42;
+    public static int poblacion = 2000;
   public static void cargaDatos(String filename){
     try {
       Stream<String> lines = Files.lines(Paths.get(filename));
@@ -199,6 +199,25 @@ pop2.add(n2);
 }
 
 
+public static void Mutacion(){
+
+  Random r = new Random();
+
+  //int amutar = r.nextInt((Integer) pop.size()*(0.2));
+int amutar = 200;
+
+  System.out.println("A MUTAR "+amutar);
+  for (int i=0;i<amutar;i++){
+
+  int indi = r.nextInt(pop.size());
+  int gen = r.nextInt(datos.size());
+
+  int cromosoma = r.nextInt(datos.get(gen).length()-largo);
+  pop.get(i).indices[gen] = cromosoma;
+}
+}
+
+
 
   public static void main(String args[]) throws CloneNotSupportedException{
 
@@ -211,14 +230,14 @@ pop2.add(n2);
      double sumatotal = 0;
 
     System.out.println("Java");
-    String archivodatos = "PS00010.fa";
+    String archivodatos = "PS00023.fa";
     cargaDatos("../"+archivodatos);
 
 
     for (int i=0;i<poblacion;i++){
     Matriz m = generaInicial();
     if (m==null){
-      System.out.println("LA CAGO EL INICIAL");
+      System.out.println("error inicial");
       System.exit(0);
     }
 
@@ -226,7 +245,7 @@ pop2.add(n2);
     pop.add(m);
   }
   pop.stream().forEach(m -> getFitness(m));
-for (int c=0;c<10000;c++){
+for (int c=0;c<10000000;c++){
   mejorf=0;
 
 
@@ -272,6 +291,12 @@ pop2.clear();
 
 
 
+Random r = new Random();
+double muta = r.nextDouble();
+
+if(muta>0.8){
+Mutacion();
+}
 
 
 pop.parallelStream().forEach(m -> getFitness(m));
