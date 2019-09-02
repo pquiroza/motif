@@ -13,7 +13,7 @@ import java.util.HashMap;
 import java.util.Map;
 import java.util.Iterator;
 import java.util.Collections;
-
+import java.lang.Math;
 public class GeneticMotif implements Cloneable{
 
 
@@ -27,8 +27,8 @@ static ArrayList<Matriz> pop2 = new ArrayList<Matriz>();
 
 
     static String linea ="";
-    public static int largo = 42;
-    public static int poblacion = 2000;
+    public static int largo = 4;
+    public static int poblacion = 5000;
   public static void cargaDatos(String filename){
     try {
       Stream<String> lines = Files.lines(Paths.get(filename));
@@ -67,7 +67,7 @@ public static void escribeFitness(double fitness,String archivo) throws IOExcept
 public static void escribeIndividuo(Matriz m, String archivo) throws IOException{
   BufferedWriter writer = new BufferedWriter(new FileWriter(archivo));
   for(int i=0;i<m.indices.length;i++){
-    writer.write(datos.get(i).substring(m.indices[i],m.indices[i]+largo));
+    writer.write(datos.get(i).substring(m.indices[i],m.indices[i]+largo)+"  "+m.indices[i]);
     writer.write("\n");
   }
   writer.write(m.fitness+"");
@@ -199,14 +199,35 @@ pop2.add(n2);
 }
 
 
+public static Matriz MutacionAnnealing(Matriz m){
+  Random r = new Random();
+  int cuantos = r.nextInt(datos.size());
+
+
+  int[] nuevo = new int[datos.size()];
+  for (int i=0;i<datos.size();i++){
+    nuevo[i] = m.indices[i];
+  }
+    for (int c=0;c<cuantos;c++){
+      int gen = r.nextInt(datos.size());
+  int cromosoma = r.nextInt(datos.get(gen).length()-largo);
+  nuevo[gen] = cromosoma;
+}
+
+
+  Matriz n = new Matriz(nuevo,0,0);
+
+  return n;
+}
+
+
 public static void Mutacion(){
 
   Random r = new Random();
 
   //int amutar = r.nextInt((Integer) pop.size()*(0.2));
-int amutar = 200;
+int amutar = 1000;
 
-  System.out.println("A MUTAR "+amutar);
   for (int i=0;i<amutar;i++){
 
   int indi = r.nextInt(pop.size());
@@ -218,35 +239,30 @@ int amutar = 200;
 }
 
 
+public static void GeneticRun(){
+  double mejorf = 0;
+  int[] psa =new int[datos.size()];
+  Matriz mejori = new Matriz(psa,0,0);
+   double sumatotal = 0;
 
-  public static void main(String args[]) throws CloneNotSupportedException{
-
-
-
-
-    double mejorf = 0;
-    int[] psa =new int[datos.size()];
-    Matriz mejori = new Matriz(psa,0,0);
-     double sumatotal = 0;
-
-    System.out.println("Java");
-    String archivodatos = "PS00023.fa";
-    cargaDatos("../"+archivodatos);
+  System.out.println("Java");
+  String archivodatos = "PS00023.fa";
+  cargaDatos("../"+archivodatos);
 
 
-    for (int i=0;i<poblacion;i++){
-    Matriz m = generaInicial();
-    if (m==null){
-      System.out.println("error inicial");
-      System.exit(0);
-    }
-
-
-    pop.add(m);
+  for (int i=0;i<poblacion;i++){
+  Matriz m = generaInicial();
+  if (m==null){
+    System.out.println("error inicial");
+    System.exit(0);
   }
-  pop.stream().forEach(m -> getFitness(m));
+
+
+  pop.add(m);
+}
+pop.stream().forEach(m -> getFitness(m));
 for (int c=0;c<10000000;c++){
-  mejorf=0;
+mejorf=0;
 
 
 pop.parallelStream().forEach(m-> roulette(m));
@@ -275,10 +291,10 @@ pop.parallelStream().forEach(m -> cruzamiento(m));
 
 int contanull = 0;
 for(int e=0;e<pop2.size();e++){
-  if(pop2.get(e)!=null){
-    contanull++;
-    pop.add(pop2.get(e));
-  }
+if(pop2.get(e)!=null){
+  contanull++;
+  pop.add(pop2.get(e));
+}
 }
 
 
@@ -306,27 +322,29 @@ pop.parallelStream().forEach(m -> getFitness(m));
 
 for (int i=0;i<pop.size();i++){
 
-  sumatotal = sumatotal + pop.get(i).fitness;
-  if (pop.get(i).fitness > mejorf){
-    mejorf = pop.get(i).fitness;
+sumatotal = sumatotal + pop.get(i).fitness;
+if (pop.get(i).fitness > mejorf){
+  mejorf = pop.get(i).fitness;
 
 
-  }
+}
 
-  if(pop.get(i).fitness>mejori.fitness){
-    mejori = pop.get(i);
-    try {
-    escribeIndividuo(mejori,"Results"+archivodatos+" "+largo+".txt");
-    if(mejori.fitness==1.0){
-      System.out.println("Perfect Motif Find");
-      System.exit(0);
-    }
-  }
-  catch(IOException e){
-  System.out.println("error");
-  }
+if(pop.get(i).fitness>mejori.fitness){
+  mejori = pop.get(i);
+  System.out.println("CICLO "+c+" PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
 
+  try {
+  escribeIndividuo(mejori,"Results"+archivodatos+" "+largo+".txt");
+  if(mejori.fitness==1.0){
+    System.out.println("Perfect Motif Find");
+    System.exit(0);
   }
+}
+catch(IOException e){
+System.out.println("error");
+}
+
+}
 
 }
 
@@ -341,10 +359,60 @@ System.out.println("error");
 }
 //System.out.println(pop.size()+" "+sumatotal);
 pop.parallelStream().forEach(m -> backto(m) );
-System.out.println("CICLO "+c+" PROMEDIO "+(double) sumatotal/pop.size()+" MEJOR "+mejorf +" POP "+pop.size());
 sumatotal=0;
 
 
+}
+}
+
+
+public static void AnnealingRun(){
+  String archivodatos = "PS00023.fa";
+  cargaDatos("../"+archivodatos);
+  double tinicial = 10;
+  Matriz m = generaInicial();
+  getFitness(m);
+  while (tinicial>0.001){
+    try {
+          escribeFitness(m.fitness,"Annealing"+archivodatos+" "+largo+".txt");
+        }
+        catch(IOException e){
+
+        }
+    for (int c=0;c<1000;c++){
+
+
+      Matriz n = MutacionAnnealing(m);
+      getFitness(n);
+        System.out.println("MEJOR FITNESS "+m.fitness+" "+tinicial+" "+n.fitness);
+      double resta = m.fitness - n.fitness;
+      //System.out.println(resta);
+      if (resta<0){
+        //System.out.println("ELige mejor");
+        m = n;
+      }
+      else {
+        double valor = Math.exp(-(resta/tinicial));
+        Random r = new Random();
+        double compara = r.nextDouble();
+        if (compara<valor){
+            //System.out.println("ELige peor");
+          m = n;
+        }
+
+      }
+
+    }
+    tinicial = tinicial*.999;
   }
+}
+
+
+  public static void main(String args[]) throws CloneNotSupportedException{
+
+AnnealingRun();
+
+
+
 }
 }
